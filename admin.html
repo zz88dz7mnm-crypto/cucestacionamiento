@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#111111">
+  <title>CUC Admin — Estacionamiento</title>
+  <link rel="icon" href="logo.png">
+  <link rel="apple-touch-icon" href="logo.png">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css?v=3">
+</head>
+<body class="admin-page">
+
+  <!-- Toast container -->
+  <div id="toast-container"></div>
+
+  <!-- Confirm overlay genérico -->
+  <div class="overlay" id="confirm-overlay">
+    <div class="overlay-box">
+      <h3 id="confirm-title"></h3>
+      <p id="confirm-text"></p>
+      <div class="overlay-btns">
+        <button class="btn btn-outline btn-md" id="confirm-cancel">Cancelar</button>
+        <button class="btn btn-negro btn-md"   id="confirm-ok">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header admin logueado -->
+  <div id="admin-topbar" style="display:none;">
+    <div class="admin-header-simple">
+      <img src="logo.png" class="logo-xs" alt="CUC">
+      <span class="admin-header-nombre" id="topbar-nombre">Administrador</span>
+      <button class="btn btn-outline btn-md" id="btn-logout">Salir</button>
+    </div>
+    <div class="admin-nav" id="admin-nav-global">
+      <button class="admin-nav-btn active" data-screen="screen-dashboard"><span class="admin-nav-icon">📋</span>Partidos</button>
+      <button class="admin-nav-btn" data-screen="screen-crear"><span class="admin-nav-icon">➕</span>Nuevo</button>
+      <button class="admin-nav-btn" data-screen="screen-stats"><span class="admin-nav-icon">📊</span>Estadísticas</button>
+      <button class="admin-nav-btn" data-screen="screen-auditoria"><span class="admin-nav-icon">📝</span>Auditoría</button>
+    </div>
+  </div>
+
+  <!-- ─── SCREEN: LOGIN ─────────────────────────────────── -->
+  <div class="screen active" id="screen-login">
+    <div class="banner-wrap">
+      <div class="home-hero">
+        <div class="home-hero-body">
+          <img src="logo.png" class="home-hero-logo" alt="CUC">
+          <div class="home-hero-info">
+            <div class="home-hero-titulo">Sistema de Estacionamiento</div>
+            <div class="home-hero-sub">Club Universitario Rugby</div>
+          </div>
+        </div>
+        <img src="monolito.png" class="home-hero-monolito" alt="">
+      </div>
+    </div>
+    <div style="padding:1.25rem;">
+      <div class="form-card">
+        <div class="form-card-header">
+          <h2>Acceso</h2>
+          <p>Ingresá tus credenciales para continuar.</p>
+        </div>
+        <div id="login-alerta"></div>
+        <div class="campo">
+          <label>Usuario</label>
+          <input type="text" id="login-user" placeholder="Admin" autocomplete="username" maxlength="80">
+        </div>
+        <div class="campo">
+          <label>Contraseña</label>
+          <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" maxlength="120">
+        </div>
+        <button class="btn btn-verde btn-lg btn-full" id="btn-login">Ingresar</button>
+        <div class="login-volver-wrap">
+          <a href="index.html" class="btn-volver btn-volver-cobrador">← Volver a cobrador</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── SCREEN: DASHBOARD ────────────────────────────── -->
+  <div class="screen pb-nav" id="screen-dashboard">
+    <div class="centro-bloque">
+      <div id="dash-alerta"></div>
+      <div style="display:flex;flex-direction:column;gap:1rem;padding:1.25rem;">
+        <div>
+          <div class="sec-title">Eventos activos</div>
+          <div id="lista-activos" style="display:flex;flex-direction:column;gap:.75rem;margin-top:.5rem;"></div>
+        </div>
+        <div>
+          <div class="sec-title">Eventos cerrados</div>
+          <div id="lista-cerrados" style="display:flex;flex-direction:column;gap:.75rem;margin-top:.5rem;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── SCREEN: CREAR EVENTO ─────────────────────────── -->
+  <div class="screen pb-nav" id="screen-crear">
+    <div class="centro-bloque">
+    <div style="padding:1.25rem;display:flex;flex-direction:column;gap:.9rem;">
+      <button class="btn-volver" id="btn-back-crear">← Volver</button>
+      <div class="form-card">
+        <div class="form-card-header">
+          <h2>Nuevo partido</h2>
+        </div>
+        <div id="crear-alerta"></div>
+
+        <div class="campo">
+          <label>Equipo visitante *</label>
+          <select id="ev-visitante">
+            <option value="">Seleccionar...</option>
+            <option value="Alta Gracia Rugby">Alta Gracia Rugby</option>
+            <option value="Athletic">Athletic</option>
+            <option value="Bajo Palermo">Bajo Palermo</option>
+            <option value="Carlos Paz">Carlos Paz</option>
+            <option value="Córdoba Rugby">Córdoba Rugby</option>
+            <option value="Jockey">Jockey</option>
+            <option value="Jockey Villa María">Jockey Villa María</option>
+            <option value="San Martín Villa María">San Martín Villa María</option>
+            <option value="Tablada">Tablada</option>
+            <option value="Tala">Tala</option>
+            <option value="Uru Cure">Uru Cure</option>
+            <option value="__otro__">Otro (escribir)...</option>
+          </select>
+          <span class="campo-error" id="err-visitante">Seleccioná el equipo visitante</span>
+        </div>
+        <div class="campo" id="visitante-otro-wrap" style="display:none;">
+          <label>Nombre del visitante *</label>
+          <input type="text" id="ev-visitante-otro" placeholder="Escribí el nombre del equipo" autocomplete="off" maxlength="80">
+        </div>
+
+        <div class="campo">
+          <label>Categoría *</label>
+          <select id="ev-categoria">
+            <option value="">Seleccionar...</option>
+            <option value="infantiles">Infantiles</option>
+            <option value="juveniles">Juveniles</option>
+            <option value="plantel_superior">Plantel Superior</option>
+            <option value="femenino">Femenino</option>
+          </select>
+          <span class="campo-error" id="err-categoria">Seleccioná la categoría</span>
+        </div>
+
+        <div class="grid-2">
+          <div class="campo">
+            <label>Fecha *</label>
+            <input type="date" id="ev-fecha">
+            <span class="campo-error" id="err-fecha">Seleccioná la fecha</span>
+          </div>
+          <div class="campo">
+            <label>Hora (opcional)</label>
+            <input type="time" id="ev-hora">
+          </div>
+        </div>
+
+        <div class="campo">
+          <label>Precio por auto ($) *</label>
+          <input type="number" id="ev-precio" placeholder="Ej: 3000" min="1" max="1000000" inputmode="numeric">
+          <span class="campo-error" id="err-precio">Ingresá un precio válido</span>
+        </div>
+        <div class="campo">
+          <label>Alias de transferencia (opcional)</label>
+          <input type="text" id="ev-alias" placeholder="Ej: universitariorugby" autocomplete="off" maxlength="80">
+        </div>
+
+        <button class="btn btn-verde btn-lg btn-full" id="btn-crear-evento">✓ Crear partido</button>
+      </div>
+    </div>
+    </div>
+
+  </div>
+
+  <!-- ─── SCREEN: DETALLE EVENTO ───────────────────────── -->
+  <div class="screen pb-nav" id="screen-detalle">
+    <div class="detalle-back-bar">
+      <button class="btn btn-outline btn-md" id="btn-back-detalle">← Volver al panel</button>
+    </div>
+    <div class="detalle-band">
+      <div class="detalle-band-inner">
+        <div style="font-size:1rem;font-weight:800;color:#fff;" id="detalle-titulo"></div>
+        <div style="font-size:.78rem;color:rgba(255,255,255,.55);margin-top:.2rem;" id="detalle-meta"></div>
+        <div style="margin-top:.5rem;" id="detalle-badge"></div>
+      </div>
+    </div>
+
+    <div class="centro-bloque">
+    <div style="padding:1.1rem;display:flex;flex-direction:column;gap:1rem;">
+      <div id="detalle-alerta"></div>
+
+      <!-- Cards resumen -->
+      <div class="res-cards" id="detalle-resumen"></div>
+
+      <!-- Clave de acceso -->
+      <div id="detalle-clave-wrap" style="display:none;">
+        <div class="clave-box">
+          <div class="clave-label">Clave de acceso para cobradores</div>
+          <div class="clave-valor" id="detalle-clave-valor"></div>
+          <div class="clave-hint">Los cobradores deben ingresar esta clave al unirse al evento</div>
+        </div>
+      </div>
+
+      <!-- Acciones -->
+      <div id="detalle-acciones"></div>
+
+      <!-- Tabs -->
+      <div class="tabs" id="detalle-tabs">
+        <button class="tab active" data-tab="cobradores">Cobradores</button>
+        <button class="tab"        data-tab="tickets">Tickets</button>
+        <button class="tab"        data-tab="libres">Pases libres</button>
+      </div>
+
+      <!-- Tab cobradores -->
+      <div id="tab-cobradores">
+        <div class="tabla-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Cobrador</th>
+                <th>#</th>
+                <th>Inicio</th>
+                <th>Cierre</th>
+                <th>Tickets</th>
+                <th>Efectivo</th>
+                <th>Transfer.</th>
+                <th>Libres</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-cobradores"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab tickets -->
+      <div id="tab-tickets" style="display:none;">
+        <div class="tabla-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Hora</th>
+                <th>N° Ticket</th>
+                <th>Cobrador</th>
+                <th>Método</th>
+                <th>Monto</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-tickets"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab pases libres -->
+      <div id="tab-libres" style="display:none;">
+        <div class="tabla-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Hora</th>
+                <th>Cobrador</th>
+                <th>Persona</th>
+                <th>Patente</th>
+                <th>Motivo</th>
+                <th>Descripción</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-libres"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Texto resumen + exportar -->
+      <div id="detalle-texto-wrap" style="display:none;">
+        <div class="sec-title" style="margin-bottom:.5rem;">Texto para compartir</div>
+        <div class="copiar-box">
+          <textarea id="texto-resumen-admin" readonly rows="14"></textarea>
+          <div class="grid-2">
+            <button class="btn btn-negro btn-md btn-full" id="btn-copiar-resumen">📋 Copiar</button>
+            <button class="btn btn-outline btn-md btn-full" id="btn-exportar-excel">📊 Excel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <!-- ─── SCREEN: ESTADÍSTICAS ─────────────────────────── -->
+  <div class="screen pb-nav" id="screen-stats">
+    <div class="centro-bloque">
+      <div style="padding:1.25rem;display:flex;flex-direction:column;gap:1rem;">
+        <div class="sec-title">Estadísticas históricas</div>
+        <div id="stats-contenido"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── SCREEN: AUDITORÍA ────────────────────────────── -->
+  <div class="screen pb-nav" id="screen-auditoria">
+    <div class="centro-bloque">
+      <div style="padding:1.25rem;display:flex;flex-direction:column;gap:1rem;">
+        <div class="sec-title">Log de auditoría</div>
+        <div id="auditoria-contenido"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="xlsx.bundle.js"></script>
+  <script src="supabase.min.js"></script>
+  <script src="db.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>

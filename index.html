@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#111111">
+  <title>CUC Estacionamiento</title>
+  <link rel="icon" href="LOGO PAGINA.png" type="image/png">
+  <link rel="apple-touch-icon" href="LOGO APP.png">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css?v=3">
+</head>
+<body class="app-page">
+
+  <!-- Toast container -->
+  <div id="toast-container"></div>
+
+  <!-- Confirm overlay genérico -->
+  <div class="overlay" id="confirm-overlay">
+    <div class="overlay-box">
+      <h3 id="confirm-title"></h3>
+      <p id="confirm-text"></p>
+      <div class="overlay-btns">
+        <button class="btn btn-outline btn-md" id="confirm-cancel">Cancelar</button>
+        <button class="btn btn-negro btn-md"   id="confirm-ok">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal pase libre -->
+  <div class="overlay" id="modal-libre">
+    <div class="overlay-box">
+      <h3 style="margin-bottom:.9rem;">Registrar pase libre</h3>
+
+      <div class="campo">
+        <label>Nombre de la persona *</label>
+        <input type="text" id="libre-nombre" placeholder="Ej: Carlos García" autocomplete="off" maxlength="80">
+        <span class="campo-error" id="err-libre-nombre">Ingresá el nombre</span>
+      </div>
+      <div class="campo">
+        <label>Patente del auto *</label>
+        <input type="text" id="libre-patente" placeholder="Ej: ABC123" autocomplete="off"
+               style="text-transform:uppercase" inputmode="text" maxlength="12" pattern="[A-Za-z0-9 -]{3,12}">
+        <span class="campo-error" id="err-libre-patente">Ingresá la patente</span>
+      </div>
+      <div class="campo">
+        <label>Motivo *</label>
+        <input type="text" id="libre-motivo" placeholder="Ej: proveedor, árbitro, invitado" autocomplete="off" maxlength="80">
+        <span class="campo-error" id="err-libre-motivo">Ingresá el motivo</span>
+      </div>
+
+      <div class="grid-2 mt-2">
+        <button class="btn btn-outline btn-md" id="btn-cancelar-libre">Cancelar</button>
+        <button class="btn btn-verde btn-md"   id="btn-confirmar-libre">✓ Registrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Overlay: evento cerrado por admin -->
+  <div class="overlay" id="overlay-cerrado">
+    <div class="overlay-box" style="text-align:center;">
+      <div style="font-size:2.5rem;margin-bottom:.75rem;">🔒</div>
+      <h3 style="margin-bottom:.5rem;">Partido cerrado</h3>
+      <p>El administrador cerró el partido. Tu cobranza quedó registrada.</p>
+      <div id="cerrado-resumen" style="margin:.75rem 0;"></div>
+      <button class="btn btn-verde btn-md btn-full" id="btn-cerrado-ok">Ver mi resumen</button>
+    </div>
+  </div>
+
+  <!-- App principal -->
+  <div id="app"></div>
+
+  <script src="supabase.min.js"></script>
+  <script src="db.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

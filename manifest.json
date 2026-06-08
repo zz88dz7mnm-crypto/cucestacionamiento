@@ -1,0 +1,18 @@
+{
+  "name": "CUC Estacionamiento",
+  "short_name": "CUC Estacionamiento",
+  "description": "Sistema de cobranza de estacionamiento — Club Universitario Rugby",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#111111",
+  "theme_color": "#111111",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "LOGO APP.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
