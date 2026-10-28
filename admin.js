@@ -1215,14 +1215,14 @@ Te invito a participar como cobrador en este evento.
   configurarEventoEspecial() {
     document.getElementById('ev-visitante').value = '__otro__';
     document.getElementById('visitante-otro-wrap').style.display = 'block';
-    document.getElementById('ev-visitante-otro').value = 'PRUEBA';
+    document.getElementById('ev-visitante-otro').value = 'Visita Papal - Prueba';
     document.getElementById('ev-categoria').value = 'plantel_superior';
     document.getElementById('ev-fecha').value = '2026-10-28';
     document.getElementById('ev-hora').value = '00:00';
     document.getElementById('ev-precio').value = '80000';
     document.getElementById('ev-alias').value = '';
     document.getElementById('crear-alerta').innerHTML =
-      '<div class="alerta-ok">Evento de PRUEBA configurado y habilitado para hoy. Los importes por vehículo, el QR y el alias se aplicarán automáticamente.</div>';
+      '<div class="alerta-ok">Visita Papal - Prueba configurado y habilitado para hoy. Los importes por vehículo, el QR y el alias se aplicarán automáticamente.</div>';
   },
 };
 

@@ -8,12 +8,12 @@ const App = {
       oficial: {
         visitante: 'Visita Papal', fecha: '2026-11-08',
         inicio: '2026-11-08T00:00:00-03:00', fin: '2026-11-10T12:00:00-03:00',
-        titulo: 'VISITA PAPAL', periodo: '8 al 10 de noviembre',
+        titulo: 'Visita Papal', periodo: '8 al 10 de noviembre',
       },
       prueba: {
-        visitante: 'PRUEBA', fecha: '2026-10-28',
+        visitante: 'Visita Papal - Prueba', fecha: '2026-10-28',
         inicio: '2026-10-28T00:00:00-03:00', fin: '2026-10-28T23:59:59-03:00',
-        titulo: 'PRUEBA', periodo: 'Habilitado hoy',
+        titulo: 'Visita Papal - Prueba', periodo: 'Habilitado hoy',
       },
     },
     vehiculos: {
@@ -850,7 +850,7 @@ const App = {
   },
 
   esEventoPrueba(evento) {
-    return this.configEventoEspecial(evento)?.titulo === 'PRUEBA';
+    return this.configEventoEspecial(evento)?.visitante === 'Visita Papal - Prueba';
   },
 
   configEventoEspecial(evento) {
