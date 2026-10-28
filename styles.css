@@ -627,6 +627,48 @@ img { max-width: 100%; }
 .btn-metodo-libre { border-color: #e9d5ff; }
 .btn-metodo-libre:hover { border-color: #7c3aed; }
 
+/* ── Evento especial: selección de vehículo y QR ───────────── */
+.evento-especial-aviso {
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+  padding: .8rem .9rem;
+  background: var(--rojo-soft);
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-sm);
+  color: #8d2922;
+  font-size: .8rem;
+}
+.evento-especial-aviso strong { font-size: .88rem; }
+.vehiculos-grid { display: grid; grid-template-columns: 1fr; gap: .6rem; }
+.btn-vehiculo {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .8rem .9rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  text-align: left;
+  transition: border-color .15s, background .15s, transform .1s;
+}
+.btn-vehiculo:active { transform: scale(.98); }
+.btn-vehiculo.seleccionado { border-color: var(--rojo); background: var(--rojo-soft); }
+.btn-vehiculo-icon { font-size: 1.5rem; }
+.btn-vehiculo-texto { display: flex; flex: 1; align-items: center; justify-content: space-between; gap: .75rem; }
+.btn-vehiculo-texto strong { font-size: .92rem; }
+.btn-vehiculo-texto small { font-size: .86rem; font-weight: 900; color: var(--rojo); white-space: nowrap; }
+.qr-modal-box { max-width: 390px; text-align: center; }
+.qr-modal-eyebrow { color: var(--rojo); font-size: .7rem; font-weight: 900; letter-spacing: .09em; text-transform: uppercase; margin-bottom: .25rem; }
+.qr-modal-box h3 { margin-bottom: .35rem; }
+.qr-modal-box > p { color: var(--text2); font-size: .82rem; line-height: 1.35; }
+.qr-modal-image { display: block; width: min(100%, 275px); margin: .85rem auto .6rem; border: 1px solid var(--border); border-radius: 10px; }
+.qr-modal-total { font-size: 1.65rem; font-weight: 900; color: var(--verde2); }
+.qr-modal-vehicle { margin-top: .18rem; font-size: .86rem; font-weight: 700; color: var(--text2); }
+.qr-modal-hint { margin: .8rem 0; }
+.qr-modal-actions { display: grid; grid-template-columns: 1fr 1.35fr; gap: .55rem; margin-top: .85rem; }
+.evento-especial-admin-hint { color: var(--text2); font-size: .76rem; line-height: 1.35; margin: -.2rem 0 .9rem; }
+
 /* ── Cobro: acciones de turno ──────────────────────────────── */
 .cobro-actions {
   display: grid;

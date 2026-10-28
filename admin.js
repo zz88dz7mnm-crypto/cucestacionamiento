@@ -1180,6 +1180,7 @@ Te invito a participar como cobrador en este evento.
     document.getElementById('btn-back-crear').addEventListener('click', () =>
       this.showScreen('screen-dashboard'));
     document.getElementById('btn-crear-evento').addEventListener('click', () => this.crearEvento());
+    document.getElementById('btn-configurar-evento-especial').addEventListener('click', () => this.configurarEventoEspecial());
 
     document.getElementById('ev-visitante').addEventListener('change', function() {
       document.getElementById('visitante-otro-wrap').style.display =
@@ -1209,6 +1210,19 @@ Te invito a participar como cobrador en este evento.
     document.getElementById('ev-precio').value = '';
     document.getElementById('ev-alias').value = '';
     document.querySelectorAll('#screen-crear .campo-error').forEach(e => e.classList.remove('visible'));
+  },
+
+  configurarEventoEspecial() {
+    document.getElementById('ev-visitante').value = '__otro__';
+    document.getElementById('visitante-otro-wrap').style.display = 'block';
+    document.getElementById('ev-visitante-otro').value = 'Estacionamiento especial';
+    document.getElementById('ev-categoria').value = 'plantel_superior';
+    document.getElementById('ev-fecha').value = '2026-11-08';
+    document.getElementById('ev-hora').value = '08:00';
+    document.getElementById('ev-precio').value = '80000';
+    document.getElementById('ev-alias').value = '';
+    document.getElementById('crear-alerta').innerHTML =
+      '<div class="alerta-ok">Evento especial configurado: comienza el 08/11 a las 08:00 y finaliza el 10/11 a las 12:00. Los importes por vehículo y el QR se aplicarán automáticamente.</div>';
   },
 };
 

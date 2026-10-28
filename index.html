@@ -58,6 +58,23 @@
     </div>
   </div>
 
+  <!-- Modal de cobro por QR: evento especial -->
+  <div class="overlay" id="modal-qr-especial" aria-hidden="true">
+    <div class="overlay-box qr-modal-box" role="dialog" aria-modal="true" aria-labelledby="qr-modal-title">
+      <div class="qr-modal-eyebrow">Evento especial</div>
+      <h3 id="qr-modal-title">Escaneá el QR para pagar</h3>
+      <p id="qr-modal-detail">Verificá el importe antes de confirmar el pago.</p>
+      <img class="qr-modal-image" src="qr-evento-especial.png" alt="Código QR para pagar el estacionamiento">
+      <div class="qr-modal-total" id="qr-modal-total"></div>
+      <div class="qr-modal-vehicle" id="qr-modal-vehicle"></div>
+      <p class="qr-modal-hint">Registrá el cobro únicamente cuando el pago esté confirmado.</p>
+      <div class="qr-modal-actions">
+        <button class="btn btn-outline btn-md" id="btn-cancelar-qr">Cancelar</button>
+        <button class="btn btn-verde btn-md" id="btn-confirmar-pago-qr">✓ Confirmar pago</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Overlay: evento cerrado por admin -->
   <div class="overlay" id="overlay-cerrado">
     <div class="overlay-box" style="text-align:center;">

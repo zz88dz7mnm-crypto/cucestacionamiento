@@ -3,6 +3,17 @@
 // ============================================================
 
 const App = {
+  EVENTO_ESPECIAL: {
+    visitante: 'Estacionamiento especial',
+    fecha: '2026-11-08',
+    inicio: '2026-11-08T08:00:00-03:00',
+    fin: '2026-11-10T12:00:00-03:00',
+    vehiculos: {
+      auto:       { label: 'Auto',               monto: 80000,  icono: '🚗' },
+      camioneta:  { label: 'Camioneta / van',    monto: 120000, icono: '🚐' },
+      colectivo:  { label: 'Colectivo',          monto: 200000, icono: '🚌' },
+    },
+  },
   state: {
     vista: 'home',
     eventos: [],
@@ -11,6 +22,7 @@ const App = {
     sessionToken: null,
     resumen: null,
     pollingTimer: null,
+    cobroEspecialPendiente: null,
   },
 
   // ── Toast ─────────────────────────────────────────────────
@@ -68,14 +80,13 @@ const App = {
     const tarjetas = eventos.length
       ? eventos.map(e => `
           <div class="evento-card" data-id="${e.id}" role="button" tabindex="0">
-            <div class="evento-card-vs">Universitario vs ${this._esc(e.visitante)}</div>
+            <div class="evento-card-vs">${this.esEventoEspecial(e) ? 'Evento especial de estacionamiento' : `Universitario vs ${this._esc(e.visitante)}`}</div>
             <div class="evento-card-meta">
-              <span>${this._catLabel(e.categoria)}</span>
-              <span>·</span>
-              <span>${this._fmtFecha(e.fecha)}</span>
-              ${e.hora ? `<span>·</span><span>${e.hora.slice(0,5)} hs</span>` : ''}
+              ${this.esEventoEspecial(e)
+                ? '<span>8 nov. 08:00 hs · 10 nov. 12:00 hs</span>'
+                : `<span>${this._catLabel(e.categoria)}</span><span>·</span><span>${this._fmtFecha(e.fecha)}</span>${e.hora ? `<span>·</span><span>${e.hora.slice(0,5)} hs</span>` : ''}`}
             </div>
-            <div class="evento-card-precio">$${Number(e.precio_entrada).toLocaleString('es-AR')} por auto</div>
+            <div class="evento-card-precio">${this.esEventoEspecial(e) ? 'Auto $80.000 · Camioneta/van $120.000 · Colectivo $200.000' : `$${Number(e.precio_entrada).toLocaleString('es-AR')} por auto`}</div>
           </div>`).join('')
       : `<div class="empty-state">
            <div class="empty-title">Sin partidos activos</div>
@@ -155,6 +166,7 @@ const App = {
   // ── COBRO ─────────────────────────────────────────────────
   vistaCobro() {
     const { sesion, eventoSeleccionado: e, resumen: r } = this.state;
+    if (this.esEventoEspecial(e)) return this.vistaCobroEspecial(sesion, e, r);
     const precio = Number(e.precio_entrada).toLocaleString('es-AR');
     const tk  = r?.cantidad_total         ?? 0;
     const ef  = r?.cantidad_efectivo      ?? 0;
@@ -251,6 +263,44 @@ const App = {
       </div>`;
   },
 
+  vistaCobroEspecial(sesion, e, r) {
+    const tk = r?.cantidad_total ?? 0;
+    const tr = r?.cantidad_transferencia ?? 0;
+    const li = r?.cantidad_libres ?? 0;
+    const rec = r ? `$${Number(r.total_recaudado).toLocaleString('es-AR')}` : '$0';
+    const opciones = Object.entries(this.EVENTO_ESPECIAL.vehiculos).map(([id, v]) => `
+      <button class="btn-vehiculo" data-vehiculo="${id}">
+        <span class="btn-vehiculo-icon">${v.icono}</span>
+        <span class="btn-vehiculo-texto"><strong>${v.label}</strong><small>$${v.monto.toLocaleString('es-AR')}</small></span>
+      </button>`).join('');
+
+    return `
+      <div class="rojo-stripe"></div>
+      <div class="cobro-header">
+        <img src="logo.png" class="logo-xs" alt="CUC" style="flex-shrink:0;">
+        <div class="cobro-header-info">
+          <div class="cobro-header-cobrador">${this._esc(sesion.nombre)} ${this._esc(sesion.apellido)}</div>
+          <div class="cobro-header-partido">Evento especial de estacionamiento</div>
+        </div>
+        <div class="cobro-header-precio">8–10 NOV</div>
+      </div>
+      <div class="cobro-stats-bar">
+        <div class="cobro-stat"><div class="cobro-stat-num" id="stat-rec">${rec}</div><div class="cobro-stat-lbl">Recaudado</div></div>
+        <div class="cobro-stat"><div class="cobro-stat-num" id="stat-tk">${tk}</div><div class="cobro-stat-lbl">Cobros</div></div>
+        <div class="cobro-stat"><div class="cobro-stat-num" id="stat-ef">0</div><div class="cobro-stat-lbl">Efectivo</div></div>
+        <div class="cobro-stat"><div class="cobro-stat-num" id="stat-tr">${tr}</div><div class="cobro-stat-lbl">QR</div></div>
+        <div class="cobro-stat"><div class="cobro-stat-num" id="stat-li">${li}</div><div class="cobro-stat-lbl">Libres</div></div>
+      </div>
+      <div class="app-main app-main-cobro" style="padding:1rem;display:flex;flex-direction:column;gap:.85rem;">
+        <div id="cobro-alerta"></div>
+        <div class="evento-especial-aviso"><strong>Pago por QR</strong><span>Elegí el vehículo, cobrá y confirmá únicamente cuando el pago esté acreditado.</span></div>
+        <div class="ticket-input-wrap"><label>Número de ticket</label><input type="text" id="ticket-num" class="ticket-input" placeholder="000" inputmode="numeric" autocomplete="off" enterkeyhint="done" maxlength="8" pattern="[0-9]{1,8}"></div>
+        <div class="cobro-metodos-panel"><div class="sec-title" style="margin-bottom:.5rem;">Tipo de vehículo</div><div class="vehiculos-grid">${opciones}</div></div>
+        <button class="btn btn-verde btn-lg btn-full" id="btn-cobrar-especial" disabled>Mostrar QR para cobrar</button>
+        <div class="cobro-actions"><button class="btn-cobro-secundario" id="btn-borrar-ultimo">✕ Borrar último</button><button class="btn-terminar-cobranza" id="btn-cerrar-turno">Terminar cobranza</button></div>
+      </div>`;
+  },
+
   // ── CIERRE ────────────────────────────────────────────────
   vistaCierre() {
     const { sesion, eventoSeleccionado: e, resumen: r } = this.state;
@@ -319,7 +369,11 @@ const App = {
       document.querySelectorAll('.evento-card').forEach(card => {
         const go = () => {
           const e = this.state.eventos.find(ev => ev.id === card.dataset.id);
-          if (e) this.ir('ingreso', { eventoSeleccionado: e });
+          if (e) {
+            const disponibilidad = this.disponibilidadEventoEspecial(e);
+            if (disponibilidad) return this.toast(disponibilidad, 'warn');
+            this.ir('ingreso', { eventoSeleccionado: e });
+          }
         };
         card.addEventListener('click', go);
         card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') go(); });
@@ -338,6 +392,10 @@ const App = {
     }
 
     if (v === 'cobro') {
+      if (this.esEventoEspecial(this.state.eventoSeleccionado)) {
+        this.bindCobroEspecial();
+        return;
+      }
       // Selección de método (no registra, solo selecciona visualmente)
       document.querySelectorAll('.btn-metodo').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -389,6 +447,79 @@ const App = {
         this.ir('home', { sesion: null, eventoSeleccionado: null, resumen: null });
         this.cargarEventos();
       });
+    }
+  },
+
+  bindCobroEspecial() {
+    const cobrar = document.getElementById('btn-cobrar-especial');
+    document.querySelectorAll('.btn-vehiculo').forEach(btn => btn.addEventListener('click', () => {
+      document.querySelectorAll('.btn-vehiculo').forEach(b => b.classList.remove('seleccionado'));
+      btn.classList.add('seleccionado');
+      const v = this.EVENTO_ESPECIAL.vehiculos[btn.dataset.vehiculo];
+      cobrar.disabled = false;
+      cobrar.textContent = `Cobrar $${v.monto.toLocaleString('es-AR')} con QR`;
+    }));
+    cobrar?.addEventListener('click', () => this.abrirCobroEspecial());
+    document.getElementById('btn-cerrar-turno')?.addEventListener('click', () => this.cerrarTurno());
+    document.getElementById('btn-borrar-ultimo')?.addEventListener('click', () => this.borrarUltimoTicket());
+    setTimeout(() => document.getElementById('ticket-num')?.focus(), 150);
+  },
+
+  abrirCobroEspecial() {
+    const numero = (document.getElementById('ticket-num')?.value || '').trim();
+    const alerta = document.getElementById('cobro-alerta');
+    const seleccionado = document.querySelector('.btn-vehiculo.seleccionado')?.dataset.vehiculo;
+    if (!/^\d{1,8}$/.test(numero)) {
+      alerta.innerHTML = '<div class="alerta-error">Ingresá un número de ticket válido.</div>';
+      document.getElementById('ticket-num')?.focus();
+      return;
+    }
+    if (!seleccionado) return;
+    const vehiculo = this.EVENTO_ESPECIAL.vehiculos[seleccionado];
+    this.state.cobroEspecialPendiente = { numero, vehiculo: seleccionado, monto: vehiculo.monto };
+    alerta.innerHTML = '';
+    document.getElementById('qr-modal-detail').textContent = `Ticket N° ${numero} · ${vehiculo.label}`;
+    document.getElementById('qr-modal-total').textContent = `$${vehiculo.monto.toLocaleString('es-AR')}`;
+    document.getElementById('qr-modal-vehicle').textContent = `${vehiculo.icono} ${vehiculo.label}`;
+    document.getElementById('modal-qr-especial').classList.add('open');
+  },
+
+  cerrarCobroEspecial() {
+    this.state.cobroEspecialPendiente = null;
+    document.getElementById('modal-qr-especial').classList.remove('open');
+  },
+
+  async confirmarPagoEspecial() {
+    const pendiente = this.state.cobroEspecialPendiente;
+    if (!pendiente) return;
+    const btn = document.getElementById('btn-confirmar-pago-qr');
+    btn.disabled = true; btn.textContent = 'Confirmando...';
+    try {
+      const dup = await DB.checkDuplicado(this.state.eventoSeleccionado.id, pendiente.numero);
+      if (dup) {
+        this.cerrarCobroEspecial();
+        this.toast(`El ticket N° ${pendiente.numero} ya fue registrado.`, 'warn');
+        return;
+      }
+      await DB.registrarTicket({
+        evento_id: this.state.eventoSeleccionado.id, sesion_id: this.state.sesion.id,
+        session_token: this.state.sessionToken, metodo_pago: 'transferencia',
+        numero_ticket: pendiente.numero, monto: pendiente.monto,
+      });
+      this.cerrarCobroEspecial();
+      document.getElementById('ticket-num').value = '';
+      document.querySelectorAll('.btn-vehiculo').forEach(b => b.classList.remove('seleccionado'));
+      const cobrar = document.getElementById('btn-cobrar-especial');
+      cobrar.disabled = true; cobrar.textContent = 'Mostrar QR para cobrar';
+      this.toast(`Pago confirmado — ${this.EVENTO_ESPECIAL.vehiculos[pendiente.vehiculo].label}`);
+      const { resumen } = await DB.resumenSesion(this.state.sesion.id);
+      this.state.resumen = resumen;
+      this._actualizarStats();
+      document.getElementById('ticket-num')?.focus();
+    } catch (err) {
+      document.getElementById('cobro-alerta').innerHTML = `<div class="alerta-error">${this._escHtml(this._safeError(err))}</div>`;
+    } finally {
+      btn.disabled = false; btn.textContent = '✓ Confirmar pago';
     }
   },
 
@@ -706,6 +837,22 @@ const App = {
   },
 
   // ── Helpers ───────────────────────────────────────────────
+  esEventoEspecial(evento) {
+    return evento?.visitante === this.EVENTO_ESPECIAL.visitante && evento?.fecha === this.EVENTO_ESPECIAL.fecha;
+  },
+
+  disponibilidadEventoEspecial(evento) {
+    if (!this.esEventoEspecial(evento)) return '';
+    const ahora = Date.now();
+    if (ahora < new Date(this.EVENTO_ESPECIAL.inicio).getTime()) {
+      return 'El evento especial comienza el 8 de noviembre a las 08:00 hs.';
+    }
+    if (ahora >= new Date(this.EVENTO_ESPECIAL.fin).getTime()) {
+      return 'El evento especial finalizó el 10 de noviembre a las 12:00 hs.';
+    }
+    return '';
+  },
+
   _catLabel(cat) { return DB.CATEGORIAS[cat] || cat || ''; },
 
   _fmtFecha(f) {
@@ -754,6 +901,8 @@ const App = {
     }
     document.getElementById('btn-confirmar-libre').addEventListener('click', () => this.confirmarLibre());
     document.getElementById('btn-cancelar-libre').addEventListener('click',  () => this.cerrarModalLibre());
+    document.getElementById('btn-cancelar-qr').addEventListener('click', () => this.cerrarCobroEspecial());
+    document.getElementById('btn-confirmar-pago-qr').addEventListener('click', () => this.confirmarPagoEspecial());
     document.getElementById('btn-cerrado-ok').addEventListener('click', async () => {
       document.getElementById('overlay-cerrado').classList.remove('open');
       try {

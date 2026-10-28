@@ -1,8 +1,9 @@
-const CACHE = 'cuc-local-v1';
+const CACHE = 'cuc-local-v2';
 const ARCHIVOS = [
   './styles.css',
   './logo.png',
   './favicon.png',
+  './qr-evento-especial.png',
 ];
 
 self.addEventListener('install', e => {
