@@ -126,7 +126,7 @@ const App = {
           <img src="logo.png" class="logo-xs" alt="CUC">
           <div class="app-header-info">
             <div style="font-size:.72rem;color:var(--text2);">${this.esEventoEspecial(e) ? 'VISITA PAPAL' : `Universitario vs ${this._esc(e.visitante)}`}</div>
-            <div style="font-size:.9rem;font-weight:800;color:var(--text);">${this._catLabel(e.categoria)} · ${this._fmtFecha(e.fecha)}</div>
+            <div style="font-size:.9rem;font-weight:800;color:var(--text);">${this.esEventoEspecial(e) ? '8 al 10 de noviembre' : `${this._catLabel(e.categoria)} · ${this._fmtFecha(e.fecha)}`}</div>
           </div>
         </div>
       </div>
@@ -824,7 +824,7 @@ const App = {
       '',
       `Cobrador: ${sesion.nombre} ${sesion.apellido}`,
       `Evento: ${this.esEventoEspecial(e) ? 'VISITA PAPAL' : `Universitario vs ${e.visitante}`}`,
-      `Categoría: ${this._catLabel(e.categoria)}`,
+      ...(this.esEventoEspecial(e) ? [] : [`Categoría: ${this._catLabel(e.categoria)}`]),
       `Fecha: ${this._fmtFecha(e.fecha)}`,
       `Hora de cierre: ${hora}`,
       '',
