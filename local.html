@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="theme-color" content="#111111">
+  <title>CUC Estacionamiento — Prueba local</title>
+  <link rel="icon" href="LOGO PAGINA.png" type="image/png">
+  <link rel="stylesheet" href="styles.css?v=3">
+</head>
+<body class="app-page">
+  <div id="toast-container"></div>
+
+  <div class="overlay" id="confirm-overlay">
+    <div class="overlay-box">
+      <h3 id="confirm-title"></h3><p id="confirm-text"></p>
+      <div class="overlay-btns"><button class="btn btn-outline btn-md" id="confirm-cancel">Cancelar</button><button class="btn btn-negro btn-md" id="confirm-ok">Confirmar</button></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="modal-libre">
+    <div class="overlay-box">
+      <h3 style="margin-bottom:.9rem;">Registrar pase libre</h3>
+      <div class="campo"><label>Nombre de la persona *</label><input type="text" id="libre-nombre" maxlength="80"><span class="campo-error" id="err-libre-nombre">Ingresá el nombre</span></div>
+      <div class="campo"><label>Patente *</label><input type="text" id="libre-patente" maxlength="12"><span class="campo-error" id="err-libre-patente">Ingresá la patente</span></div>
+      <div class="campo"><label>Motivo *</label><input type="text" id="libre-motivo" maxlength="80"><span class="campo-error" id="err-libre-motivo">Ingresá el motivo</span></div>
+      <div class="grid-2 mt-2"><button class="btn btn-outline btn-md" id="btn-cancelar-libre">Cancelar</button><button class="btn btn-verde btn-md" id="btn-confirmar-libre">✓ Registrar</button></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="modal-qr-especial" aria-hidden="true">
+    <div class="overlay-box qr-modal-box" role="dialog" aria-modal="true" aria-labelledby="qr-modal-title">
+      <div class="qr-modal-eyebrow">Evento especial</div><h3 id="qr-modal-title">Escaneá el QR para pagar</h3>
+      <p id="qr-modal-detail">Verificá el importe antes de confirmar el pago.</p>
+      <img class="qr-modal-image" src="qr-evento-especial.png" alt="Código QR para pagar el estacionamiento">
+      <div class="qr-modal-alias"><span>ALIAS</span><strong>rugby.unidemivida</strong></div>
+      <div class="qr-modal-total" id="qr-modal-total"></div><div class="qr-modal-vehicle" id="qr-modal-vehicle"></div>
+      <p class="qr-modal-hint">Registrá el cobro únicamente cuando el pago esté confirmado.</p>
+      <div class="qr-modal-actions"><button class="btn btn-outline btn-md" id="btn-cancelar-qr">Cancelar</button><button class="btn btn-verde btn-md" id="btn-confirmar-pago-qr">✓ Confirmar pago</button></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay-cerrado"><div class="overlay-box" style="text-align:center;"><h3>Evento cerrado</h3><div id="cerrado-resumen"></div><button class="btn btn-verde btn-md btn-full" id="btn-cerrado-ok">Ver mi resumen</button></div></div>
+  <div id="app"></div>
+  <script src="supabase.min.js"></script>
+  <script src="db.js"></script>
+  <script src="local-demo.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -108,11 +108,11 @@ const App = {
       <div class="app-main app-main-home" style="padding:1.25rem;display:flex;flex-direction:column;gap:.9rem;">
         <div class="sec-title">Elegí tu partido</div>
         ${tarjetas}
-        <div style="margin-top:.5rem;padding-top:1rem;border-top:1px solid var(--border);">
+        ${window.CUC_LOCAL_DEMO ? '' : `<div style="margin-top:.5rem;padding-top:1rem;border-top:1px solid var(--border);">
           <a href="admin.html" class="btn btn-outline btn-md btn-full" style="text-decoration:none;">
             Panel Administrador
           </a>
-        </div>
+        </div>`}
       </div>`;
   },
 
@@ -844,6 +844,7 @@ const App = {
 
   disponibilidadEventoEspecial(evento) {
     if (!this.esEventoEspecial(evento)) return '';
+    if (window.CUC_LOCAL_DEMO) return '';
     const ahora = Date.now();
     if (ahora < new Date(this.EVENTO_ESPECIAL.inicio).getTime()) {
       return 'El evento especial comienza el 8 de noviembre a las 08:00 hs.';
