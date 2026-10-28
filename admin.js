@@ -10,8 +10,13 @@ const Admin = {
 
   // Visita Papal: no se puede cerrar hasta que finalice su período.
   EVENTOS_ESPECIALES: [
-    { visitante: 'Visita Papal', fecha: '2026-11-08', titulo: 'Visita Papal', fin: '2026-11-10T12:00:00-03:00' },
-    { visitante: 'Visita Papal - Prueba', fecha: '2026-10-28', titulo: 'Visita Papal - Prueba', fin: '2026-10-28T23:59:59-03:00' },
+    { visitante: 'Visita Papal', fecha: '2026-11-08', titulo: 'Visita Papal', periodo: '8 al 10 de noviembre de 2026', fin: '2026-11-10T12:00:00-03:00' },
+    { visitante: 'Visita Papal - Prueba', fecha: '2026-10-28', titulo: 'Visita Papal - Prueba', periodo: 'Prueba · 28/10/2026', fin: '2026-10-28T23:59:59-03:00' },
+  ],
+  VEHICULOS_ESPECIALES: [
+    { label: 'Auto', monto: 80000 },
+    { label: 'Camioneta / van', monto: 120000 },
+    { label: 'Colectivo', monto: 200000 },
   ],
   CLAVE_EVENTO_ESPECIAL: 'S352',
 
@@ -28,6 +33,17 @@ const Admin = {
   },
   nombreEvento(e) {
     return this.eventoEspecial(e)?.titulo || `Universitario vs ${e.visitante}`;
+  },
+  metaEvento(e) {
+    const c = this.eventoEspecial(e);
+    if (c) return `${c.periodo} · Solo QR · Auto $80.000 · Camioneta/van $120.000 · Colectivo $200.000`;
+    return `${this.catLabel(e.categoria)} · ${this.fmtFecha(e.fecha)}${e.hora ? ' · ' + e.hora.slice(0,5) + ' hs' : ''} · $${Number(e.precio_entrada).toLocaleString('es-AR')}`;
+  },
+  vehiculoPorMonto(monto) {
+    return this.VEHICULOS_ESPECIALES.find(v => v.monto === Number(monto))?.label || 'Otro';
+  },
+  palabraEvento(e) {
+    return this.eventoEspecial(e) ? 'evento' : 'partido';
   },
 
   // ── Estado auditoría ──────────────────────────────────────
@@ -183,7 +199,7 @@ const Admin = {
           <div class="evento-fila ${activo ? 'evento-activo' : 'evento-cerrado'}">
             <div class="evento-info">
               <div class="evento-nombre">${this.esc(this.nombreEvento(e))}</div>
-              <div class="evento-meta">${this.catLabel(e.categoria)} · ${this.fmtFecha(e.fecha)}${e.hora ? ' · ' + e.hora.slice(0,5) + ' hs' : ''} · $${Number(e.precio_entrada).toLocaleString('es-AR')}</div>
+              <div class="evento-meta">${this.esc(this.metaEvento(e))}</div>
               <div class="evento-stats">
                 <span class="badge ${activo ? 'badge-activo' : 'badge-cerrado'}">
                   ${activo ? 'Activo' : 'Cerrado'}
@@ -207,10 +223,10 @@ const Admin = {
       const listaC = document.getElementById('lista-cerrados');
       listaA.innerHTML = activos.length
         ? activos.map(fila).join('')
-        : '<div class="empty-state"><div class="empty-icon">🏉</div><div class="empty-title">Sin partidos activos</div></div>';
+        : '<div class="empty-state"><div class="empty-icon">🏉</div><div class="empty-title">Sin eventos activos</div></div>';
       listaC.innerHTML = cerrados.length
         ? cerrados.map(fila).join('')
-        : '<p style="font-size:.83rem;color:var(--text3);padding:.5rem 0;">Sin partidos cerrados aún.</p>';
+        : '<p style="font-size:.83rem;color:var(--text3);padding:.5rem 0;">Sin eventos cerrados aún.</p>';
 
       document.querySelectorAll('[data-accion="ver"]').forEach(b =>
         b.addEventListener('click', () => this.verDetalle(b.dataset.id)));
@@ -329,8 +345,7 @@ Te invito a participar como cobrador en este evento.
   renderDetalle({ evento, sesiones, tickets }) {
     const activo = this.esActivo(evento);
     document.getElementById('detalle-titulo').textContent = this.nombreEvento(evento);
-    document.getElementById('detalle-meta').textContent =
-      `${this.catLabel(evento.categoria)} · ${this.fmtFecha(evento.fecha)}${evento.hora ? ' · ' + evento.hora.slice(0,5) + ' hs' : ''} · $${Number(evento.precio_entrada).toLocaleString('es-AR')}`;
+    document.getElementById('detalle-meta').textContent = this.metaEvento(evento);
     document.getElementById('detalle-badge').innerHTML =
       `<div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;margin-top:.25rem;">
          <span class="badge ${activo ? 'badge-activo' : 'badge-cerrado'}">
@@ -356,7 +371,21 @@ Te invito a participar como cobrador en este evento.
     const li  = activos.filter(t => t.metodo_pago === 'libre');
     const tot = ef.reduce((s,t)=>s+(t.monto||0),0) + tr.reduce((s,t)=>s+(t.monto||0),0);
 
-    document.getElementById('detalle-resumen').innerHTML = `
+    const especial = this.eventoEspecial(evento);
+    document.getElementById('detalle-resumen').innerHTML = especial ? `
+      <div class="res-card res-card-destac">
+        <div class="res-label">Total recaudado</div>
+        <div class="res-valor grande">$${tot.toLocaleString('es-AR')}</div>
+        <div class="res-sub">${tr.length} cobro${tr.length !== 1 ? 's' : ''} con QR</div>
+      </div>
+      ${this.VEHICULOS_ESPECIALES.map(v => {
+        const vt = tr.filter(t => Number(t.monto) === v.monto);
+        return `<div class="res-card">
+          <div class="res-label">${v.label}</div>
+          <div class="res-valor">${vt.length}</div>
+          <div class="res-sub">$${vt.reduce((s,t)=>s+(t.monto||0),0).toLocaleString('es-AR')}</div>
+        </div>`;
+      }).join('')}` : `
       <div class="res-card res-card-destac">
         <div class="res-label">Total recaudado</div>
         <div class="res-valor grande">$${tot.toLocaleString('es-AR')}</div>
@@ -383,13 +412,13 @@ Te invito a participar como cobrador en este evento.
     if (activo && !this.especialEnCurso(evento)) {
       const btnCerrar = document.createElement('button');
       btnCerrar.className   = 'btn btn-amber btn-lg';
-      btnCerrar.textContent = '🔒 Cerrar partido';
+      btnCerrar.textContent = especial ? '🔒 Finalizar evento' : '🔒 Cerrar partido';
       btnCerrar.addEventListener('click', () => this.cerrarEvento(evento.id, true));
       acc.appendChild(btnCerrar);
     }
     const btnEliminar = document.createElement('button');
     btnEliminar.className   = 'btn btn-danger btn-lg';
-    btnEliminar.textContent = 'Eliminar partido';
+    btnEliminar.textContent = especial ? 'Eliminar evento' : 'Eliminar partido';
     btnEliminar.addEventListener('click', () => this.eliminarEvento(evento.id, true));
     acc.appendChild(btnEliminar);
 
@@ -452,7 +481,7 @@ Te invito a participar como cobrador en este evento.
           <td>${this.fmtHora(t.timestamp)}</td>
           <td>${t.numero_ticket ? `<strong>${this.esc(t.numero_ticket)}</strong>` : '—'}</td>
           <td>${ses ? `${this.esc(ses.nombre)} ${this.esc(ses.apellido)}` : '—'}</td>
-          <td><span class="badge ${badge}">${t.metodo_pago}</span></td>
+          <td><span class="badge ${badge}">${especial && t.metodo_pago === 'transferencia' ? `QR · ${this.vehiculoPorMonto(t.monto)}` : t.metodo_pago}</span></td>
           <td>$${(t.monto||0).toLocaleString('es-AR')}</td>
           <td>${t.eliminado ? '<span style="color:var(--text3);font-size:.75rem;">Eliminado</span>' : '—'}</td>`;
         tbodyT.appendChild(fila);
@@ -498,16 +527,17 @@ Te invito a participar como cobrador en este evento.
       this.toast('La Visita Papal no se puede cerrar hasta que finalice.', 'warn');
       return;
     }
+    const especial = this.eventoEspecial(evento);
     const ok = await this.confirm(
-      'Cerrar partido',
+      especial ? 'Finalizar evento' : 'Cerrar partido',
       'Se cerrarán las sesiones activas de todos los cobradores. ¿Confirmás?',
-      'Cerrar partido',
+      especial ? 'Finalizar evento' : 'Cerrar partido',
       'btn-amber'
     );
     if (!ok) return;
     try {
       await DB.cerrarEvento(id);
-      this.toast('Partido cerrado correctamente');
+      this.toast(especial ? 'Evento finalizado correctamente' : 'Partido cerrado correctamente');
       this.detenerPolling();
       if (enDetalle) this.verDetalle(id);
       else           this.cargarEventos();
@@ -561,6 +591,35 @@ Te invito a participar como cobrador en este evento.
 
   // ── Texto resumen admin (simplificado) ───────────────────
   _generarTextoResumen(evento, sesiones, tickets, ef, tr, li, tot) {
+    const especial = this.eventoEspecial(evento);
+    if (especial) {
+      const $ = n => `$${Number(n).toLocaleString('es-AR')}`;
+      const suma = arr => arr.reduce((s,t)=>s+(t.monto||0),0);
+      const porVehiculo = lista => this.VEHICULOS_ESPECIALES.map(v => {
+        const vt = lista.filter(t => Number(t.monto) === v.monto);
+        return `${v.label}: ${vt.length} - ${$(suma(vt))}`;
+      });
+      const lineas = [
+        'RESUMEN DE ESTACIONAMIENTO — VISITA DEL PAPA',
+        '',
+        `Evento: ${especial.titulo}`,
+        `Período: ${especial.periodo}`,
+        'Medio de pago: solo QR',
+        '',
+        'TOTALES',
+        `Total recaudado: ${$(tot)}`,
+        `Cobros con QR: ${tr.length}`,
+        ...porVehiculo(tr),
+      ];
+      if (sesiones.length) {
+        lineas.push('', 'RECAUDADO POR COBRADOR');
+        sesiones.forEach(s => {
+          const str = tr.filter(t => t.sesion_id === s.id);
+          lineas.push('', `${s.nombre} ${s.apellido}`, ...porVehiculo(str).map(l => `  ${l}`), `  Total: ${$(suma(str))}`);
+        });
+      }
+      return lineas.join('\n');
+    }
     const lineas = [
       'RESUMEN DE ESTACIONAMIENTO',
       '',
@@ -711,11 +770,13 @@ Te invito a participar como cobrador en este evento.
     const rows = [
       [this._xlsxCell('ESTACIONAMIENTO CUC - RESUMEN GENERAL', st.title), null, null, null, null, null],
       [],
-      [this._xlsxCell('Partido', st.label), this._xlsxCell(`Universitario vs ${evento.visitante}`, st.cell)],
-      [this._xlsxCell('Categoria', st.label), this._xlsxCell(this.catLabel(evento.categoria), st.cell)],
+      [this._xlsxCell('Evento', st.label), this._xlsxCell(this.nombreEvento(evento), st.cell)],
+      [this._xlsxCell('Categoria', st.label), this._xlsxCell(this.eventoEspecial(evento) ? 'Evento especial' : this.catLabel(evento.categoria), st.cell)],
       [this._xlsxCell('Fecha', st.label), this._xlsxCell(this.fmtFecha(evento.fecha), st.cell)],
       [this._xlsxCell('Hora', st.label), this._xlsxCell(hora, st.cell)],
-      [this._xlsxCell('Precio por auto', st.label), this._xlsxCell(evento.precio_entrada || 0, st.money)],
+      this.eventoEspecial(evento)
+        ? [this._xlsxCell('Tarifas', st.label), this._xlsxCell('Auto $80.000 · Camioneta/van $120.000 · Colectivo $200.000 (solo QR)', st.cell)]
+        : [this._xlsxCell('Precio por auto', st.label), this._xlsxCell(evento.precio_entrada || 0, st.money)],
       [this._xlsxCell('Alias transferencia', st.label), this._xlsxCell(evento.alias || '', st.cell)],
       [],
       [
@@ -908,8 +969,8 @@ Te invito a participar como cobrador en este evento.
       fila.title = 'Ver detalle';
       fila.innerHTML = `
         <td>
-          <strong>vs ${this.esc(i.evento.visitante)}</strong>
-          <span class="td-sub">${this.catLabel(i.evento.categoria)}</span>
+          <strong>${this.esc(this.nombreEvento(i.evento))}</strong>
+          <span class="td-sub">${this.eventoEspecial(i.evento) ? 'Evento especial' : this.catLabel(i.evento.categoria)}</span>
         </td>
         <td>${this.fmtFecha(i.evento.fecha)}</td>
         <td><span class="badge ${this.esActivo(i.evento) ? 'badge-activo' : 'badge-cerrado'}">${this.esActivo(i.evento) ? 'Activo' : 'Cerrado'}</span></td>
@@ -1009,8 +1070,8 @@ Te invito a participar como cobrador en este evento.
                 <label class="audit-evento-row ${sel ? 'audit-sel' : ''}">
                   <input type="checkbox" class="audit-check" data-id="${e.id}" ${sel ? 'checked' : ''} style="width:18px;height:18px;flex-shrink:0;">
                   <div style="flex:1;min-width:0;">
-                    <div style="font-weight:800;font-size:.9rem;">vs ${this.esc(e.visitante)}</div>
-                    <div style="font-size:.75rem;color:var(--text2);">${this.catLabel(e.categoria)} · ${this.fmtFecha(e.fecha)}</div>
+                    <div style="font-weight:800;font-size:.9rem;">${this.esc(this.nombreEvento(e))}</div>
+                    <div style="font-size:.75rem;color:var(--text2);">${this.eventoEspecial(e) ? this.eventoEspecial(e).periodo : `${this.catLabel(e.categoria)} · ${this.fmtFecha(e.fecha)}`}</div>
                     <div style="font-size:.78rem;color:var(--verde);font-weight:700;">$${Number(r.total_recaudado).toLocaleString('es-AR')}</div>
                   </div>
                 </label>`;
@@ -1129,8 +1190,8 @@ Te invito a participar como cobrador en este evento.
         ...eventos.map(e => {
           const r = e.resumen || {};
           return [
-            this._xlsxCell(`Universitario vs ${e.visitante}`, st.cell),
-            this._xlsxCell(this.catLabel(e.categoria), st.cell),
+            this._xlsxCell(this.nombreEvento(e), st.cell),
+            this._xlsxCell(this.eventoEspecial(e) ? 'Evento especial' : this.catLabel(e.categoria), st.cell),
             this._xlsxCell(this.fmtFecha(e.fecha), st.centered),
             this._xlsxCell(e.precio_entrada || 0, st.money),
             this._xlsxCell(r.total_recaudado        || 0, st.money),

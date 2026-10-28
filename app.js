@@ -8,12 +8,12 @@ const App = {
       oficial: {
         visitante: 'Visita Papal', fecha: '2026-11-08',
         inicio: '2026-11-08T00:00:00-03:00', fin: '2026-11-10T12:00:00-03:00',
-        titulo: 'Visita Papal', periodo: '8 al 10 de noviembre',
+        titulo: 'Visita Papal', periodo: '8 al 10 de noviembre de 2026',
       },
       prueba: {
         visitante: 'Visita Papal - Prueba', fecha: '2026-10-28',
         inicio: '2026-10-28T00:00:00-03:00', fin: '2026-10-28T23:59:59-03:00',
-        titulo: 'Visita Papal - Prueba', periodo: 'Habilitado hoy',
+        titulo: 'Visita Papal - Prueba', periodo: 'Prueba · habilitado hoy 28/10',
       },
     },
     vehiculos: {
@@ -97,7 +97,7 @@ const App = {
             <div class="evento-card-precio">${this.esEventoEspecial(e) ? 'Auto $80.000 · Camioneta/van $120.000 · Colectivo $200.000' : `$${Number(e.precio_entrada).toLocaleString('es-AR')} por auto`}</div>
           </div>`).join('')
       : `<div class="empty-state">
-           <div class="empty-title">Sin partidos activos</div>
+           <div class="empty-title">Sin eventos activos</div>
            <div class="empty-text">Consultá con el administrador del club.</div>
          </div>`;
 
@@ -113,7 +113,7 @@ const App = {
         <img src="monolito.png" class="home-hero-monolito" alt="">
       </div>
       <div class="app-main app-main-home" style="padding:1.25rem;display:flex;flex-direction:column;gap:.9rem;">
-        <div class="sec-title">Elegí tu partido</div>
+        <div class="sec-title">Elegí el evento</div>
         ${tarjetas}
         <div style="margin-top:.5rem;padding-top:1rem;border-top:1px solid var(--border);">
           <a href="admin.html" class="btn btn-outline btn-md btn-full" style="text-decoration:none;">
@@ -138,11 +138,11 @@ const App = {
         </div>
       </div>
       <div class="app-main app-main-form" style="padding:1.25rem;display:flex;flex-direction:column;gap:.9rem;">
-        <button class="btn-volver" id="btn-back-home">← Cambiar partido</button>
+        <button class="btn-volver" id="btn-back-home">← Cambiar evento</button>
         <div class="form-card">
           <div class="form-card-header">
             <h2>¿Quién cobra?</h2>
-            <p>Ingresá tus datos para empezar a cobrar.</p>
+            <p>${this.esEventoEspecial(e) ? 'Ingresá tus datos y la clave de acceso que te compartieron para cobrar el estacionamiento de la visita del Papa.' : 'Ingresá tus datos para empezar a cobrar.'}</p>
           </div>
           <div id="alerta-ingreso"></div>
           <div class="campo">
@@ -161,10 +161,10 @@ const App = {
             <span class="campo-error" id="err-dni">Ingresá un DNI válido (solo números)</span>
           </div>
           <div class="campo">
-            <label>Contraseña del partido *</label>
-            <input type="text" id="ing-pass" placeholder="Ej: I472" autocomplete="off" maxlength="12"
+            <label>${this.esEventoEspecial(e) ? 'Clave de acceso *' : 'Contraseña del partido *'}</label>
+            <input type="text" id="ing-pass" placeholder="${this.esEventoEspecial(e) ? 'Ej: S352' : 'Ej: I472'}" autocomplete="off" maxlength="12"
                    style="text-transform:uppercase;letter-spacing:.1em;font-weight:700;">
-            <span class="campo-error" id="err-pass">Contraseña incorrecta</span>
+            <span class="campo-error" id="err-pass">${this.esEventoEspecial(e) ? 'Clave incorrecta' : 'Contraseña incorrecta'}</span>
           </div>
           <button class="btn btn-verde btn-lg btn-full" id="btn-ingresar">Empezar a cobrar</button>
         </div>
@@ -272,9 +272,7 @@ const App = {
   },
 
   vistaCobroEspecial(sesion, e, r) {
-    const tk = r?.cantidad_total ?? 0;
     const tr = r?.cantidad_transferencia ?? 0;
-    const li = r?.cantidad_libres ?? 0;
     const rec = r ? `$${Number(r.total_recaudado).toLocaleString('es-AR')}` : '$0';
     const opciones = Object.entries(this.EVENTO_ESPECIAL.vehiculos).map(([id, v]) => `
       <button class="btn-vehiculo" data-vehiculo="${id}">
@@ -294,14 +292,11 @@ const App = {
       </div>
       <div class="cobro-stats-bar">
         <div class="cobro-stat"><div class="cobro-stat-num" id="stat-rec">${rec}</div><div class="cobro-stat-lbl">Recaudado</div></div>
-        <div class="cobro-stat"><div class="cobro-stat-num" id="stat-tk">${tk}</div><div class="cobro-stat-lbl">Cobros</div></div>
-        <div class="cobro-stat"><div class="cobro-stat-num" id="stat-ef">0</div><div class="cobro-stat-lbl">Efectivo</div></div>
-        <div class="cobro-stat"><div class="cobro-stat-num" id="stat-tr">${tr}</div><div class="cobro-stat-lbl">QR</div></div>
-        <div class="cobro-stat"><div class="cobro-stat-num" id="stat-li">${li}</div><div class="cobro-stat-lbl">Libres</div></div>
+        <div class="cobro-stat"><div class="cobro-stat-num" id="stat-tr">${tr}</div><div class="cobro-stat-lbl">Cobros QR</div></div>
       </div>
       <div class="app-main app-main-cobro" style="padding:1rem;display:flex;flex-direction:column;gap:.85rem;">
         <div id="cobro-alerta"></div>
-        <div class="evento-especial-aviso"><strong>Pago por QR</strong><span>Elegí el vehículo, cobrá y confirmá únicamente cuando el pago esté acreditado.</span></div>
+        <div class="evento-especial-aviso"><strong>Solo pago con QR</strong><span>Anotá el número de ticket, elegí el vehículo y mostrá el QR. Confirmá únicamente cuando el pago esté acreditado. No se cobra en efectivo.</span></div>
         <div class="ticket-input-wrap"><label>Número de ticket</label><input type="text" id="ticket-num" class="ticket-input" placeholder="000" inputmode="numeric" autocomplete="off" enterkeyhint="done" maxlength="8" pattern="[0-9]{1,8}"></div>
         <div class="cobro-metodos-panel"><div class="sec-title" style="margin-bottom:.5rem;">Tipo de vehículo</div><div class="vehiculos-grid">${opciones}</div></div>
         <button class="btn btn-verde btn-lg btn-full" id="btn-cobrar-especial" disabled>Mostrar QR para cobrar</button>
@@ -333,6 +328,16 @@ const App = {
           <div class="res-sub" style="color:rgba(255,255,255,.85);">${this.esEventoEspecial(e) ? this.tituloEventoEspecial(e) : `Universitario vs ${this._esc(e.visitante)} · ${this._catLabel(e.categoria)}`}</div>
         </div>
 
+        ${this.esEventoEspecial(e) ? `
+        <div class="card">
+          <div class="cierre-fila" style="border-bottom:none;">
+            <div>
+              <div class="cierre-fila-titulo">Cobros con QR</div>
+              <div class="cierre-fila-sub">${r.cantidad_transferencia} ticket${r.cantidad_transferencia !== 1 ? 's' : ''}</div>
+            </div>
+            <div class="cierre-fila-monto">$${Number(r.total_transferencia).toLocaleString('es-AR')}</div>
+          </div>
+        </div>` : `
         <div class="card">
           <div class="cierre-fila">
             <div>
@@ -352,7 +357,7 @@ const App = {
             <div class="cierre-fila-titulo">Pases libres</div>
             <div class="cierre-fila-monto" style="color:var(--text2);font-size:.95rem;">${r.cantidad_libres}</div>
           </div>
-        </div>
+        </div>`}
 
         <div>
           <div class="sec-title" style="margin-bottom:.5rem;">Mensaje para compartir</div>
@@ -519,7 +524,7 @@ const App = {
       document.querySelectorAll('.btn-vehiculo').forEach(b => b.classList.remove('seleccionado'));
       const cobrar = document.getElementById('btn-cobrar-especial');
       cobrar.disabled = true; cobrar.textContent = 'Mostrar QR para cobrar';
-      this.toast(`Pago confirmado — ${this.EVENTO_ESPECIAL.vehiculos[pendiente.vehiculo].label}`);
+      this.toast(`Ticket N° ${pendiente.numero} cobrado — ${this.EVENTO_ESPECIAL.vehiculos[pendiente.vehiculo].label} $${pendiente.monto.toLocaleString('es-AR')}`);
       const { resumen } = await DB.resumenSesion(this.state.sesion.id);
       this.state.resumen = resumen;
       this._actualizarStats();
@@ -537,7 +542,7 @@ const App = {
       this.state.eventos = await DB.eventosActivos();
       if (this.state.vista === 'home') this.render();
     } catch {
-      this.toast('No se pudieron cargar los partidos', 'error');
+      this.toast('No se pudieron cargar los eventos', 'error');
     }
   },
 
@@ -567,7 +572,7 @@ const App = {
     btn.disabled = true; btn.textContent = 'Ingresando...';
     try {
       const evento = this.state.eventoSeleccionado;
-      if (!evento || evento.estado !== 'activo') throw new Error('Este partido ya no está activo.');
+      if (!evento || evento.estado !== 'activo') throw new Error(this.esEventoEspecial(evento) ? 'Este evento ya no está activo.' : 'Este partido ya no está activo.');
       const data = await DB.crearSesion(evento.id, nombre, apellido, dni, pass);
       const sesion = data.sesion;
       const { resumen } = await DB.resumenSesion(sesion.id);
@@ -791,6 +796,7 @@ const App = {
   _mostrarEventoCerrado() {
     const r  = this.state.resumen;
     const ov = document.getElementById('overlay-cerrado');
+    this._textosOverlayCerrado();
     if (r) {
       document.getElementById('cerrado-resumen').innerHTML =
         `<div style="background:var(--bg);border-radius:var(--radius-sm);padding:.75rem;font-size:.88rem;">
@@ -826,6 +832,20 @@ const App = {
     const { sesion, eventoSeleccionado: e, resumen: r } = this.state;
     if (!r) return '';
     const hora = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+    if (this.esEventoEspecial(e)) {
+      return [
+        'RESUMEN DE COBRANZA — VISITA DEL PAPA',
+        '',
+        `Cobrador: ${sesion.nombre} ${sesion.apellido}`,
+        `Evento: ${this.tituloEventoEspecial(e)}`,
+        `Período: ${this.periodoEventoEspecial(e)}`,
+        `Fecha de cierre: ${new Date().toLocaleDateString('es-AR')} ${hora}`,
+        '',
+        `Cobros con QR: ${r.cantidad_transferencia} - $${Number(r.total_transferencia).toLocaleString('es-AR')}`,
+        '',
+        `Total: $${Number(r.total_recaudado).toLocaleString('es-AR')}`,
+      ].join('\n');
+    }
     const lineas = [
       'RESUMEN DE COBRANZA',
       '',
@@ -901,6 +921,7 @@ const App = {
       'Ingresá un DNI válido.',
       'Contraseña incorrecta.',
       'Este partido ya no está activo.',
+      'Este evento ya no está activo.',
       'El partido ya fue cerrado.',
       'La sesión no está habilitada.',
       'Seleccioná un método de pago válido.',
@@ -916,8 +937,21 @@ const App = {
       'Ese ticket ya fue registrado.',
       'No se pudo registrar el ticket.',
     ];
-    const msg = String(e?.message || '');
+    let msg = String(e?.message || '');
+    if (this.esEventoEspecial(this.state.eventoSeleccionado)) {
+      msg = msg.replace('El partido ya fue cerrado.', 'El evento ya fue cerrado.');
+      if (msg === 'El evento ya fue cerrado.') return msg;
+    }
     return permitidos.includes(msg) ? msg : fallback;
+  },
+
+  // ── Overlay de cierre por admin ───────────────────────────
+  _textosOverlayCerrado() {
+    const especial = this.esEventoEspecial(this.state.eventoSeleccionado);
+    document.getElementById('cerrado-titulo').textContent = especial ? 'Evento finalizado' : 'Partido cerrado';
+    document.getElementById('cerrado-texto').textContent = especial
+      ? 'El administrador finalizó el evento. Tu cobranza quedó registrada.'
+      : 'El administrador cerró el partido. Tu cobranza quedó registrada.';
   },
 
   // ── Init — listeners estáticos (modal, overlay) ───────────
