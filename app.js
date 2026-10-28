@@ -4,11 +4,11 @@
 
 const App = {
   EVENTO_ESPECIAL: {
-    visitante: 'Visita Papal',
-    visitantesCompatibles: ['Visita Papal', 'Estacionamiento especial'],
-    fecha: '2026-11-08',
-    inicio: '2026-11-08T08:00:00-03:00',
-    fin: '2026-11-10T12:00:00-03:00',
+    visitante: 'PRUEBA',
+    visitantesCompatibles: ['PRUEBA'],
+    fecha: '2026-10-28',
+    inicio: '2026-10-28T00:00:00-03:00',
+    fin: '2026-10-28T23:59:59-03:00',
     vehiculos: {
       auto:       { label: 'Auto',               monto: 80000,  icono: '🚗' },
       camioneta:  { label: 'Camioneta / van',    monto: 120000, icono: '🚐' },
@@ -81,10 +81,10 @@ const App = {
     const tarjetas = eventos.length
       ? eventos.map(e => `
           <div class="evento-card" data-id="${e.id}" role="button" tabindex="0">
-            <div class="evento-card-vs">${this.esEventoEspecial(e) ? 'VISITA PAPAL' : `Universitario vs ${this._esc(e.visitante)}`}</div>
+            <div class="evento-card-vs">${this.esEventoEspecial(e) ? 'PRUEBA' : `Universitario vs ${this._esc(e.visitante)}`}</div>
             <div class="evento-card-meta">
               ${this.esEventoEspecial(e)
-                ? '<span>8 nov. 08:00 hs · 10 nov. 12:00 hs</span>'
+                ? '<span>Habilitado hoy</span>'
                 : `<span>${this._catLabel(e.categoria)}</span><span>·</span><span>${this._fmtFecha(e.fecha)}</span>${e.hora ? `<span>·</span><span>${e.hora.slice(0,5)} hs</span>` : ''}`}
             </div>
             <div class="evento-card-precio">${this.esEventoEspecial(e) ? 'Auto $80.000 · Camioneta/van $120.000 · Colectivo $200.000' : `$${Number(e.precio_entrada).toLocaleString('es-AR')} por auto`}</div>
@@ -108,11 +108,11 @@ const App = {
       <div class="app-main app-main-home" style="padding:1.25rem;display:flex;flex-direction:column;gap:.9rem;">
         <div class="sec-title">Elegí tu partido</div>
         ${tarjetas}
-        ${window.CUC_LOCAL_DEMO ? '' : `<div style="margin-top:.5rem;padding-top:1rem;border-top:1px solid var(--border);">
+        <div style="margin-top:.5rem;padding-top:1rem;border-top:1px solid var(--border);">
           <a href="admin.html" class="btn btn-outline btn-md btn-full" style="text-decoration:none;">
             Panel Administrador
           </a>
-        </div>`}
+        </div>
       </div>`;
   },
 
@@ -125,8 +125,8 @@ const App = {
         <div class="app-header">
           <img src="logo.png" class="logo-xs" alt="CUC">
           <div class="app-header-info">
-            <div style="font-size:.72rem;color:var(--text2);">${this.esEventoEspecial(e) ? 'VISITA PAPAL' : `Universitario vs ${this._esc(e.visitante)}`}</div>
-            <div style="font-size:.9rem;font-weight:800;color:var(--text);">${this.esEventoEspecial(e) ? '8 al 10 de noviembre' : `${this._catLabel(e.categoria)} · ${this._fmtFecha(e.fecha)}`}</div>
+            <div style="font-size:.72rem;color:var(--text2);">${this.esEventoEspecial(e) ? 'PRUEBA' : `Universitario vs ${this._esc(e.visitante)}`}</div>
+            <div style="font-size:.9rem;font-weight:800;color:var(--text);">${this.esEventoEspecial(e) ? 'Habilitado hoy' : `${this._catLabel(e.categoria)} · ${this._fmtFecha(e.fecha)}`}</div>
           </div>
         </div>
       </div>
@@ -281,9 +281,9 @@ const App = {
         <img src="logo.png" class="logo-xs" alt="CUC" style="flex-shrink:0;">
         <div class="cobro-header-info">
           <div class="cobro-header-cobrador">${this._esc(sesion.nombre)} ${this._esc(sesion.apellido)}</div>
-          <div class="cobro-header-partido">VISITA PAPAL</div>
+          <div class="cobro-header-partido">PRUEBA</div>
         </div>
-        <div class="cobro-header-precio">8–10 NOV</div>
+        <div class="cobro-header-precio">HOY</div>
       </div>
       <div class="cobro-stats-bar">
         <div class="cobro-stat"><div class="cobro-stat-num" id="stat-rec">${rec}</div><div class="cobro-stat-lbl">Recaudado</div></div>
@@ -323,7 +323,7 @@ const App = {
         <div class="res-card res-card-destac" style="padding:1.25rem;">
           <div class="res-label">Total recaudado</div>
           <div class="res-valor grande">$${total}</div>
-          <div class="res-sub" style="color:rgba(255,255,255,.85);">${this.esEventoEspecial(e) ? 'VISITA PAPAL' : `Universitario vs ${this._esc(e.visitante)} · ${this._catLabel(e.categoria)}`}</div>
+          <div class="res-sub" style="color:rgba(255,255,255,.85);">${this.esEventoEspecial(e) ? 'PRUEBA' : `Universitario vs ${this._esc(e.visitante)} · ${this._catLabel(e.categoria)}`}</div>
         </div>
 
         <div class="card">
@@ -823,7 +823,7 @@ const App = {
       'RESUMEN DE COBRANZA',
       '',
       `Cobrador: ${sesion.nombre} ${sesion.apellido}`,
-      `Evento: ${this.esEventoEspecial(e) ? 'VISITA PAPAL' : `Universitario vs ${e.visitante}`}`,
+      `Evento: ${this.esEventoEspecial(e) ? 'PRUEBA' : `Universitario vs ${e.visitante}`}`,
       ...(this.esEventoEspecial(e) ? [] : [`Categoría: ${this._catLabel(e.categoria)}`]),
       `Fecha: ${this._fmtFecha(e.fecha)}`,
       `Hora de cierre: ${hora}`,
@@ -844,13 +844,12 @@ const App = {
 
   disponibilidadEventoEspecial(evento) {
     if (!this.esEventoEspecial(evento)) return '';
-    if (window.CUC_LOCAL_DEMO) return '';
     const ahora = Date.now();
     if (ahora < new Date(this.EVENTO_ESPECIAL.inicio).getTime()) {
-      return 'El evento especial comienza el 8 de noviembre a las 08:00 hs.';
+      return 'El evento de PRUEBA se habilita hoy.';
     }
     if (ahora >= new Date(this.EVENTO_ESPECIAL.fin).getTime()) {
-      return 'El evento especial finalizó el 10 de noviembre a las 12:00 hs.';
+      return 'El evento de PRUEBA finalizó por hoy.';
     }
     return '';
   },
