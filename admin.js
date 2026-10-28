@@ -8,6 +8,28 @@ const Admin = {
   eventoDetalleId: null,
   accessCodes:     {},
 
+  // Visita Papal: no se puede cerrar hasta que finalice su período.
+  EVENTOS_ESPECIALES: [
+    { visitante: 'Visita Papal', fecha: '2026-11-08', titulo: 'Visita Papal', fin: '2026-11-10T12:00:00-03:00' },
+    { visitante: 'Visita Papal - Prueba', fecha: '2026-10-28', titulo: 'Visita Papal - Prueba', fin: '2026-10-28T23:59:59-03:00' },
+  ],
+  CLAVE_EVENTO_ESPECIAL: 'S352',
+
+  eventoEspecial(e) {
+    const fecha = String(e?.fecha || '').slice(0, 10);
+    return this.EVENTOS_ESPECIALES.find(c => c.visitante === e?.visitante && c.fecha === fecha) || null;
+  },
+  especialEnCurso(e) {
+    const c = this.eventoEspecial(e);
+    return Boolean(c) && Date.now() < new Date(c.fin).getTime();
+  },
+  esActivo(e) {
+    return e?.estado === 'activo' || this.especialEnCurso(e);
+  },
+  nombreEvento(e) {
+    return this.eventoEspecial(e)?.titulo || `Universitario vs ${e.visitante}`;
+  },
+
   // ── Estado auditoría ──────────────────────────────────────
   audit: {
     fechaDesde:   '',
@@ -144,36 +166,37 @@ const Admin = {
   async cargarEventos() {
     try {
       const eventos  = await DB.todosEventos();
-      const activos  = eventos.filter(e => e.estado === 'activo');
-      const cerrados = eventos.filter(e => e.estado === 'cerrado');
+      const activos  = eventos.filter(e => this.esActivo(e));
+      const cerrados = eventos.filter(e => !this.esActivo(e));
 
       const fila = e => {
         const r = e.resumen || {
           cantidad_total: 0,
           total_recaudado: 0,
         };
-        if (e.estado === 'activo' && e.password_evento && !this.accessCodes[e.id]) {
+        const activo = this.esActivo(e);
+        if (activo && e.password_evento && !this.accessCodes[e.id]) {
           this.accessCodes[e.id] = e.password_evento;
         }
         const accessCode = this.accessCodes[e.id];
         return `
-          <div class="evento-fila ${e.estado === 'activo' ? 'evento-activo' : 'evento-cerrado'}">
+          <div class="evento-fila ${activo ? 'evento-activo' : 'evento-cerrado'}">
             <div class="evento-info">
-              <div class="evento-nombre">Universitario vs ${this.esc(e.visitante)}</div>
+              <div class="evento-nombre">${this.esc(this.nombreEvento(e))}</div>
               <div class="evento-meta">${this.catLabel(e.categoria)} · ${this.fmtFecha(e.fecha)}${e.hora ? ' · ' + e.hora.slice(0,5) + ' hs' : ''} · $${Number(e.precio_entrada).toLocaleString('es-AR')}</div>
               <div class="evento-stats">
-                <span class="badge ${e.estado === 'activo' ? 'badge-activo' : 'badge-cerrado'}">
-                  ${e.estado === 'activo' ? 'Activo' : 'Cerrado'}
+                <span class="badge ${activo ? 'badge-activo' : 'badge-cerrado'}">
+                  ${activo ? 'Activo' : 'Cerrado'}
                 </span>
                 <span class="evento-stat-txt">${r.cantidad_total} tickets · $${Number(r.total_recaudado).toLocaleString('es-AR')}</span>
-                ${e.estado === 'activo' && accessCode ? `<span class="evento-stat-txt" style="font-weight:800;color:var(--rojo);">🔑 ${this.esc(accessCode)}</span>` : ''}
+                ${activo && accessCode ? `<span class="evento-stat-txt" style="font-weight:800;color:var(--rojo);">🔑 ${this.esc(accessCode)}</span>` : ''}
               </div>
             </div>
             <div class="evento-acciones">
               <button class="btn btn-outline btn-sm" data-accion="ver" data-id="${e.id}">Ver</button>
-              ${e.estado === 'activo'
+              ${activo
                 ? `<button class="btn btn-verde btn-sm" data-accion="compartir" data-id="${e.id}">📤 Compartir</button>
-                   <button class="btn btn-amber btn-sm" data-accion="cerrar" data-id="${e.id}">Cerrar</button>`
+                   ${this.especialEnCurso(e) ? '' : `<button class="btn btn-amber btn-sm" data-accion="cerrar" data-id="${e.id}">Cerrar</button>`}`
                 : `<button class="btn btn-danger btn-sm" data-accion="eliminar" data-id="${e.id}">Eliminar</button>`
               }
             </div>
@@ -207,15 +230,24 @@ const Admin = {
   async compartirEvento(id) {
     const e = (await DB.todosEventos()).find(ev => ev.id === id);
     if (!e) return;
-    const accessCode = this.accessCodes[id];
+    const especial = this.eventoEspecial(e);
+    const accessCode = this.accessCodes[id] || (especial ? (e.password_evento || this.CLAVE_EVENTO_ESPECIAL) : null);
     if (!accessCode) {
       this.toast('La clave solo se muestra al crear el partido. Generá y compartí el mensaje en ese momento.', 'warn');
       return;
     }
     const indexUrl = window.location.origin;
     const hora = e.hora ? ` · ${e.hora.slice(0,5)} hs` : '';
-    const texto =
-`🏉 *Estacionamiento CUC — ${this.catLabel(e.categoria)}*
+    const texto = especial
+? `*ESTACIONAMIENTO CUC — VISITA DEL PAPA 🇵🇱🇲🇨*
+
+Te invitamos a participar como cobrador de estacionamiento durante la visita del Papa, del *8 al 10 de noviembre de 2026*.
+
+🔑 *Clave de acceso:* \`${accessCode}\`
+
+📲 *Ingresá acá:*
+${indexUrl}`
+: `🏉 *Estacionamiento CUC — ${this.catLabel(e.categoria)}*
 
 Universitario vs ${e.visitante}
 📅 ${this.fmtFecha(e.fecha)}${hora}
@@ -287,7 +319,7 @@ Te invito a participar como cobrador en este evento.
     try {
       const data = await DB.detalleEvento(id);
       this.renderDetalle(data);
-      if (data.evento?.estado === 'activo') this.iniciarPolling(id);
+      if (this.esActivo(data.evento)) this.iniciarPolling(id);
     } catch (e) {
       document.getElementById('detalle-alerta').innerHTML =
         `<div class="alerta-error">${this.esc(this.safeError(e))}</div>`;
@@ -295,23 +327,23 @@ Te invito a participar como cobrador en este evento.
   },
 
   renderDetalle({ evento, sesiones, tickets }) {
-    document.getElementById('detalle-titulo').textContent =
-      `Universitario vs ${evento.visitante}`;
+    const activo = this.esActivo(evento);
+    document.getElementById('detalle-titulo').textContent = this.nombreEvento(evento);
     document.getElementById('detalle-meta').textContent =
       `${this.catLabel(evento.categoria)} · ${this.fmtFecha(evento.fecha)}${evento.hora ? ' · ' + evento.hora.slice(0,5) + ' hs' : ''} · $${Number(evento.precio_entrada).toLocaleString('es-AR')}`;
     document.getElementById('detalle-badge').innerHTML =
       `<div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;margin-top:.25rem;">
-         <span class="badge ${evento.estado === 'activo' ? 'badge-activo' : 'badge-cerrado'}">
-           ${evento.estado === 'activo' ? 'Activo' : 'Cerrado'}
+         <span class="badge ${activo ? 'badge-activo' : 'badge-cerrado'}">
+           ${activo ? 'Activo' : 'Cerrado'}
          </span>
        </div>`;
 
     // Clave de acceso — solo se muestra mientras el partido está activo.
     const claveWrap = document.getElementById('detalle-clave-wrap');
     if (claveWrap) {
-      if (evento.estado === 'activo' && evento.password_evento) {
+      if (activo && evento.password_evento) {
         claveWrap.style.display = 'block';
-        document.getElementById('detalle-clave-valor').textContent = this.accessCodes[evento.id] || '';
+        document.getElementById('detalle-clave-valor').textContent = this.accessCodes[evento.id] || evento.password_evento;
       } else {
         claveWrap.style.display = 'none';
         document.getElementById('detalle-clave-valor').textContent = '';
@@ -348,7 +380,7 @@ Te invito a participar como cobrador en este evento.
     // Acciones
     const acc = document.getElementById('detalle-acciones');
     acc.innerHTML = '';
-    if (evento.estado === 'activo') {
+    if (activo && !this.especialEnCurso(evento)) {
       const btnCerrar = document.createElement('button');
       btnCerrar.className   = 'btn btn-amber btn-lg';
       btnCerrar.textContent = '🔒 Cerrar partido';
@@ -461,6 +493,11 @@ Te invito a participar como cobrador en este evento.
 
   // ── Cerrar evento ─────────────────────────────────────────
   async cerrarEvento(id, enDetalle = false) {
+    const evento = (await DB.todosEventos()).find(ev => ev.id === id);
+    if (this.especialEnCurso(evento)) {
+      this.toast('La Visita Papal no se puede cerrar hasta que finalice.', 'warn');
+      return;
+    }
     const ok = await this.confirm(
       'Cerrar partido',
       'Se cerrarán las sesiones activas de todos los cobradores. ¿Confirmás?',
@@ -875,7 +912,7 @@ Te invito a participar como cobrador en este evento.
           <span class="td-sub">${this.catLabel(i.evento.categoria)}</span>
         </td>
         <td>${this.fmtFecha(i.evento.fecha)}</td>
-        <td><span class="badge ${i.evento.estado === 'activo' ? 'badge-activo' : 'badge-cerrado'}">${i.evento.estado === 'activo' ? 'Activo' : 'Cerrado'}</span></td>
+        <td><span class="badge ${this.esActivo(i.evento) ? 'badge-activo' : 'badge-cerrado'}">${this.esActivo(i.evento) ? 'Activo' : 'Cerrado'}</span></td>
         <td>${i.cantidad_total}</td>
         <td><strong>$${Number(i.total_recaudado).toLocaleString('es-AR')}</strong></td>`;
       fila.addEventListener('click', () => this.verDetalle(i.evento.id));
