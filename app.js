@@ -483,6 +483,11 @@ const App = {
       return;
     }
     if (!seleccionado) return;
+    const disponibilidad = this.disponibilidadEventoEspecial(this.state.eventoSeleccionado);
+    if (disponibilidad) {
+      alerta.innerHTML = `<div class="alerta-error">${this._esc(disponibilidad)}</div>`;
+      return;
+    }
     const vehiculo = this.EVENTO_ESPECIAL.vehiculos[seleccionado];
     this.state.cobroEspecialPendiente = { numero, vehiculo: seleccionado, monto: vehiculo.monto };
     alerta.innerHTML = '';
@@ -500,6 +505,12 @@ const App = {
   async confirmarPagoEspecial() {
     const pendiente = this.state.cobroEspecialPendiente;
     if (!pendiente) return;
+    const disponibilidad = this.disponibilidadEventoEspecial(this.state.eventoSeleccionado);
+    if (disponibilidad) {
+      this.cerrarCobroEspecial();
+      document.getElementById('cobro-alerta').innerHTML = `<div class="alerta-error">${this._esc(disponibilidad)}</div>`;
+      return;
+    }
     const btn = document.getElementById('btn-confirmar-pago-qr');
     btn.disabled = true; btn.textContent = 'Confirmando...';
     try {

@@ -9,7 +9,7 @@ const Admin = {
   accessCodes:     {},
 
   EVENTOS_ESPECIALES: [
-    { visitante: 'Visita Papal', fecha: '2026-11-08', titulo: 'Visita Papal', periodo: 'Del 8/11 00:00 al 10/11 13:00 hs' },
+    { visitante: 'Visita Papal', fecha: '2026-11-08', titulo: 'Visita Papal', periodo: 'Del 8/11 00:00 al 10/11 13:00 hs', fin: '2026-11-10T13:00:00-03:00' },
     { visitante: 'Visita Papal - Prueba', fecha: '2026-10-28', titulo: 'Visita Papal - Prueba', periodo: 'Evento de prueba' },
   ],
   VEHICULOS_ESPECIALES: [
@@ -22,6 +22,19 @@ const Admin = {
   eventoEspecial(e) {
     const fecha = String(e?.fecha || '').slice(0, 10);
     return this.EVENTOS_ESPECIALES.find(c => c.visitante === e?.visitante && c.fecha === fecha) || null;
+  },
+  // Finaliza automáticamente los eventos especiales cuyo horario ya terminó.
+  async finalizarEspecialesVencidos(eventos) {
+    const vencidos = eventos.filter(e => {
+      const fin = this.eventoEspecial(e)?.fin;
+      return e.estado === 'activo' && fin && Date.now() >= new Date(fin).getTime();
+    });
+    for (const e of vencidos) {
+      try {
+        await DB.cerrarEvento(e.id);
+        e.estado = 'cerrado';
+      } catch { /* se reintenta en la próxima carga */ }
+    }
   },
   esActivo(e) {
     return e?.estado === 'activo';
@@ -174,6 +187,7 @@ const Admin = {
   async cargarEventos() {
     try {
       const eventos  = await DB.todosEventos();
+      await this.finalizarEspecialesVencidos(eventos);
       const activos  = eventos.filter(e => this.esActivo(e));
       const cerrados = eventos.filter(e => !this.esActivo(e));
 
@@ -301,6 +315,11 @@ Te invito a participar como cobrador en este evento.
     marcar('err-fecha',     !fecha);     if (!fecha)               ok = false;
     marcar('err-precio', !precio || precio <= 0); if (!precio || precio <= 0) ok = false;
     if (!ok) return;
+    if (/papa/i.test(visitante)) {
+      document.getElementById('crear-alerta').innerHTML =
+        '<div class="alerta-error">Los eventos de la Visita Papal ya están creados. No se puede crear otro.</div>';
+      return;
+    }
 
     const btn = document.getElementById('btn-crear-evento');
     btn.disabled = true; btn.textContent = 'Creando...';
