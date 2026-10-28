@@ -37,10 +37,10 @@
       <button class="btn btn-outline btn-md" id="btn-logout">Salir</button>
     </div>
     <div class="admin-nav" id="admin-nav-global">
-      <button class="admin-nav-btn active" data-screen="screen-dashboard"><span class="admin-nav-icon">📋</span>Partidos</button>
-      <button class="admin-nav-btn" data-screen="screen-crear"><span class="admin-nav-icon">➕</span>Nuevo</button>
-      <button class="admin-nav-btn" data-screen="screen-stats"><span class="admin-nav-icon">📊</span>Estadísticas</button>
-      <button class="admin-nav-btn" data-screen="screen-auditoria"><span class="admin-nav-icon">📝</span>Auditoría</button>
+      <button class="admin-nav-btn active" data-screen="screen-dashboard">Eventos</button>
+      <button class="admin-nav-btn" data-screen="screen-crear">Nuevo</button>
+      <button class="admin-nav-btn" data-screen="screen-stats">Estadísticas</button>
+      <button class="admin-nav-btn" data-screen="screen-auditoria">Auditoría</button>
     </div>
   </div>
 
@@ -105,9 +105,8 @@
       <button class="btn-volver" id="btn-back-crear">← Volver</button>
       <div class="form-card">
         <div class="form-card-header">
-          <h2>Nuevo partido</h2>
+          <h2>Nuevo evento</h2>
         </div>
-        <button class="btn btn-outline btn-md btn-full" id="btn-configurar-evento-especial" type="button">Crear Visita Papal - Prueba · habilitado hoy</button>
         <p class="evento-especial-admin-hint">Duplica la configuración especial para probarla hoy. La clave de acceso se genera al crearlo.</p>
         <div id="crear-alerta"></div>
 
@@ -169,7 +168,7 @@
           <input type="text" id="ev-alias" placeholder="Ej: universitariorugby" autocomplete="off" maxlength="80">
         </div>
 
-        <button class="btn btn-verde btn-lg btn-full" id="btn-crear-evento">✓ Crear partido</button>
+        <button class="btn btn-verde btn-lg btn-full" id="btn-crear-evento">Crear evento</button>
       </div>
     </div>
     </div>
@@ -281,8 +280,8 @@
         <div class="copiar-box">
           <textarea id="texto-resumen-admin" readonly rows="14"></textarea>
           <div class="grid-2">
-            <button class="btn btn-negro btn-md btn-full" id="btn-copiar-resumen">📋 Copiar</button>
-            <button class="btn btn-outline btn-md btn-full" id="btn-exportar-excel">📊 Excel</button>
+            <button class="btn btn-negro btn-md btn-full" id="btn-copiar-resumen">Copiar</button>
+            <button class="btn btn-outline btn-md btn-full" id="btn-exportar-excel">Excel</button>
           </div>
         </div>
       </div>

@@ -8,10 +8,9 @@ const Admin = {
   eventoDetalleId: null,
   accessCodes:     {},
 
-  // Visita Papal: no se puede cerrar hasta que finalice su período.
   EVENTOS_ESPECIALES: [
-    { visitante: 'Visita Papal', fecha: '2026-11-08', titulo: 'Visita Papal', periodo: '8 al 10 de noviembre de 2026', fin: '2026-11-10T12:00:00-03:00' },
-    { visitante: 'Visita Papal - Prueba', fecha: '2026-10-28', titulo: 'Visita Papal - Prueba', periodo: 'Prueba · 28/10/2026', fin: '2026-10-28T23:59:59-03:00' },
+    { visitante: 'Visita Papal', fecha: '2026-11-08', titulo: 'Visita Papal', periodo: 'Del 8/11 00:00 al 10/11 13:00 hs' },
+    { visitante: 'Visita Papal - Prueba', fecha: '2026-10-28', titulo: 'Visita Papal - Prueba', periodo: 'Evento de prueba' },
   ],
   VEHICULOS_ESPECIALES: [
     { label: 'Auto', monto: 80000 },
@@ -24,12 +23,8 @@ const Admin = {
     const fecha = String(e?.fecha || '').slice(0, 10);
     return this.EVENTOS_ESPECIALES.find(c => c.visitante === e?.visitante && c.fecha === fecha) || null;
   },
-  especialEnCurso(e) {
-    const c = this.eventoEspecial(e);
-    return Boolean(c) && Date.now() < new Date(c.fin).getTime();
-  },
   esActivo(e) {
-    return e?.estado === 'activo' || this.especialEnCurso(e);
+    return e?.estado === 'activo';
   },
   nombreEvento(e) {
     return this.eventoEspecial(e)?.titulo || `Universitario vs ${e.visitante}`;
@@ -41,9 +36,6 @@ const Admin = {
   },
   vehiculoPorMonto(monto) {
     return this.VEHICULOS_ESPECIALES.find(v => v.monto === Number(monto))?.label || 'Otro';
-  },
-  palabraEvento(e) {
-    return this.eventoEspecial(e) ? 'evento' : 'partido';
   },
 
   // ── Estado auditoría ──────────────────────────────────────
@@ -205,14 +197,14 @@ const Admin = {
                   ${activo ? 'Activo' : 'Cerrado'}
                 </span>
                 <span class="evento-stat-txt">${r.cantidad_total} tickets · $${Number(r.total_recaudado).toLocaleString('es-AR')}</span>
-                ${activo && accessCode ? `<span class="evento-stat-txt" style="font-weight:800;color:var(--rojo);">🔑 ${this.esc(accessCode)}</span>` : ''}
+                ${activo && accessCode ? `<span class="evento-stat-txt" style="font-weight:800;color:var(--rojo);">Clave: ${this.esc(accessCode)}</span>` : ''}
               </div>
             </div>
             <div class="evento-acciones">
               <button class="btn btn-outline btn-sm" data-accion="ver" data-id="${e.id}">Ver</button>
               ${activo
-                ? `<button class="btn btn-verde btn-sm" data-accion="compartir" data-id="${e.id}">📤 Compartir</button>
-                   ${this.especialEnCurso(e) ? '' : `<button class="btn btn-amber btn-sm" data-accion="cerrar" data-id="${e.id}">Cerrar</button>`}`
+                ? `<button class="btn btn-verde btn-sm" data-accion="compartir" data-id="${e.id}">Compartir</button>
+                   <button class="btn btn-amber btn-sm" data-accion="cerrar" data-id="${e.id}">Finalizar</button>`
                 : `<button class="btn btn-danger btn-sm" data-accion="eliminar" data-id="${e.id}">Eliminar</button>`
               }
             </div>
@@ -223,7 +215,7 @@ const Admin = {
       const listaC = document.getElementById('lista-cerrados');
       listaA.innerHTML = activos.length
         ? activos.map(fila).join('')
-        : '<div class="empty-state"><div class="empty-icon">🏉</div><div class="empty-title">Sin eventos activos</div></div>';
+        : '<div class="empty-state"><div class="empty-title">Sin eventos activos</div></div>';
       listaC.innerHTML = cerrados.length
         ? cerrados.map(fila).join('')
         : '<p style="font-size:.83rem;color:var(--text3);padding:.5rem 0;">Sin eventos cerrados aún.</p>';
@@ -249,7 +241,7 @@ const Admin = {
     const especial = this.eventoEspecial(e);
     const accessCode = this.accessCodes[id] || (especial ? (e.password_evento || this.CLAVE_EVENTO_ESPECIAL) : null);
     if (!accessCode) {
-      this.toast('La clave solo se muestra al crear el partido. Generá y compartí el mensaje en ese momento.', 'warn');
+      this.toast('La clave solo se muestra al crear el evento. Generá y compartí el mensaje en ese momento.', 'warn');
       return;
     }
     const indexUrl = window.location.origin;
@@ -315,13 +307,13 @@ Te invito a participar como cobrador en este evento.
     try {
       const data = await DB.crearEvento({ visitante, categoria, fecha, hora, precio_entrada: precio, alias });
       if (data?.evento?.id && data?.access_code) this.accessCodes[data.evento.id] = data.access_code;
-      this.toast('Partido creado correctamente');
+      this.toast('Evento creado correctamente');
       this.showScreen('screen-dashboard');
     } catch (err) {
       document.getElementById('crear-alerta').innerHTML =
         `<div class="alerta-error">${this.esc(this.safeError(err))}</div>`;
     } finally {
-      btn.disabled = false; btn.textContent = 'Crear partido';
+      btn.disabled = false; btn.textContent = 'Crear evento';
     }
   },
 
@@ -353,7 +345,7 @@ Te invito a participar como cobrador en este evento.
          </span>
        </div>`;
 
-    // Clave de acceso — solo se muestra mientras el partido está activo.
+    // Clave de acceso — solo se muestra mientras el evento está activo.
     const claveWrap = document.getElementById('detalle-clave-wrap');
     if (claveWrap) {
       if (activo && evento.password_evento) {
@@ -376,7 +368,7 @@ Te invito a participar como cobrador en este evento.
       <div class="res-card res-card-destac">
         <div class="res-label">Total recaudado</div>
         <div class="res-valor grande">$${tot.toLocaleString('es-AR')}</div>
-        <div class="res-sub">${tr.length} cobro${tr.length !== 1 ? 's' : ''} con QR</div>
+        <div class="res-sub">${tr.length} cobro${tr.length !== 1 ? 's' : ''}</div>
       </div>
       ${this.VEHICULOS_ESPECIALES.map(v => {
         const vt = tr.filter(t => Number(t.monto) === v.monto);
@@ -409,16 +401,16 @@ Te invito a participar como cobrador en este evento.
     // Acciones
     const acc = document.getElementById('detalle-acciones');
     acc.innerHTML = '';
-    if (activo && !this.especialEnCurso(evento)) {
+    if (activo) {
       const btnCerrar = document.createElement('button');
       btnCerrar.className   = 'btn btn-amber btn-lg';
-      btnCerrar.textContent = especial ? '🔒 Finalizar evento' : '🔒 Cerrar partido';
+      btnCerrar.textContent = 'Finalizar evento';
       btnCerrar.addEventListener('click', () => this.cerrarEvento(evento.id, true));
       acc.appendChild(btnCerrar);
     }
     const btnEliminar = document.createElement('button');
     btnEliminar.className   = 'btn btn-danger btn-lg';
-    btnEliminar.textContent = especial ? 'Eliminar evento' : 'Eliminar partido';
+    btnEliminar.textContent = 'Eliminar evento';
     btnEliminar.addEventListener('click', () => this.eliminarEvento(evento.id, true));
     acc.appendChild(btnEliminar);
 
@@ -523,21 +515,16 @@ Te invito a participar como cobrador en este evento.
   // ── Cerrar evento ─────────────────────────────────────────
   async cerrarEvento(id, enDetalle = false) {
     const evento = (await DB.todosEventos()).find(ev => ev.id === id);
-    if (this.especialEnCurso(evento)) {
-      this.toast('La Visita Papal no se puede cerrar hasta que finalice.', 'warn');
-      return;
-    }
-    const especial = this.eventoEspecial(evento);
     const ok = await this.confirm(
-      especial ? 'Finalizar evento' : 'Cerrar partido',
+      'Finalizar evento',
       'Se cerrarán las sesiones activas de todos los cobradores. ¿Confirmás?',
-      especial ? 'Finalizar evento' : 'Cerrar partido',
+      'Finalizar evento',
       'btn-amber'
     );
     if (!ok) return;
     try {
       await DB.cerrarEvento(id);
-      this.toast(especial ? 'Evento finalizado correctamente' : 'Partido cerrado correctamente');
+      this.toast('Evento finalizado correctamente');
       this.detenerPolling();
       if (enDetalle) this.verDetalle(id);
       else           this.cargarEventos();
@@ -547,15 +534,15 @@ Te invito a participar como cobrador en este evento.
   // ── Eliminar evento ───────────────────────────────────────
   async eliminarEvento(id, enDetalle = false) {
     const ok = await this.confirm(
-      'Eliminar partido',
-      'Se eliminará el partido y todos sus datos. Esta acción no se puede deshacer.',
+      'Eliminar evento',
+      'Se eliminará el evento y todos sus datos. Esta acción no se puede deshacer.',
       'Eliminar',
       'btn-danger'
     );
     if (!ok) return;
     try {
       await DB.eliminarEvento(id);
-      this.toast('Partido eliminado');
+      this.toast('Evento eliminado');
       this.detenerPolling();
       this.showScreen('screen-dashboard');
     } catch (e) { this.toast(this.safeError(e), 'error'); }
@@ -608,7 +595,7 @@ Te invito a participar como cobrador en este evento.
         '',
         'TOTALES',
         `Total recaudado: ${$(tot)}`,
-        `Cobros con QR: ${tr.length}`,
+        `Cobros: ${tr.length}`,
         ...porVehiculo(tr),
       ];
       if (sesiones.length) {
@@ -623,7 +610,7 @@ Te invito a participar como cobrador en este evento.
     const lineas = [
       'RESUMEN DE ESTACIONAMIENTO',
       '',
-      `Partido: Universitario vs ${evento.visitante}`,
+      `Evento: Universitario vs ${evento.visitante}`,
       `Categoría: ${this.catLabel(evento.categoria)}`,
       `Fecha: ${this.fmtFecha(evento.fecha)}`,
       `Precio: $${Number(evento.precio_entrada).toLocaleString('es-AR')}`,
@@ -910,9 +897,9 @@ Te invito a participar como cobrador en este evento.
     if (!stats || !stats.total_eventos) {
       contenido.innerHTML = `
         <div class="empty-state">
-          <div class="empty-icon">📊</div>
+          
           <div class="empty-title">Sin datos aún</div>
-          <div class="empty-text">Las estadísticas aparecen después del primer partido.</div>
+          <div class="empty-text">Las estadísticas aparecen después del primer evento.</div>
         </div>`;
       return;
     }
@@ -926,12 +913,12 @@ Te invito a participar como cobrador en este evento.
           <div class="res-valor grande">$${Number(total_recaudado).toLocaleString('es-AR')}</div>
         </div>
         <div class="res-card">
-          <div class="res-label">Partidos</div>
+          <div class="res-label">Eventos</div>
           <div class="res-valor">${total_eventos}</div>
           <div class="res-sub">${eventos_cerrados} cerrado${eventos_cerrados !== 1 ? 's' : ''}</div>
         </div>
         <div class="res-card">
-          <div class="res-label">Promedio por partido</div>
+          <div class="res-label">Promedio por evento</div>
           <div class="res-valor">$${Number(promedio).toLocaleString('es-AR')}</div>
           <div class="res-sub">solo cerrados</div>
         </div>
@@ -939,7 +926,7 @@ Te invito a participar como cobrador en este evento.
 
       ${maximo ? `
         <div class="card" style="margin-bottom:.75rem;border-left:4px solid var(--verde);">
-          <div class="sec-title" style="color:var(--verde);">Partido más rentable</div>
+          <div class="sec-title" style="color:var(--verde);">Evento más rentable</div>
           <div style="font-weight:800;margin-top:.3rem;">vs ${this.esc(maximo.evento.visitante)}</div>
           <div style="font-size:.8rem;color:var(--text2);">${this.catLabel(maximo.evento.categoria)} · ${this.fmtFecha(maximo.evento.fecha)}</div>
           <div style="font-size:1.2rem;font-weight:900;color:var(--verde);margin-top:.3rem;">$${Number(maximo.total_recaudado).toLocaleString('es-AR')}</div>
@@ -947,16 +934,16 @@ Te invito a participar como cobrador en este evento.
 
       ${minimo && minimo.evento.id !== maximo?.evento.id ? `
         <div class="card" style="margin-bottom:.75rem;border-left:4px solid var(--border);">
-          <div class="sec-title">Partido menos rentable</div>
+          <div class="sec-title">Evento menos rentable</div>
           <div style="font-weight:800;margin-top:.3rem;">vs ${this.esc(minimo.evento.visitante)}</div>
           <div style="font-size:.8rem;color:var(--text2);">${this.catLabel(minimo.evento.categoria)} · ${this.fmtFecha(minimo.evento.fecha)}</div>
           <div style="font-size:1.2rem;font-weight:900;margin-top:.3rem;">$${Number(minimo.total_recaudado).toLocaleString('es-AR')}</div>
         </div>` : ''}
 
-      <div class="sec-title" style="margin-top:.5rem;">Todos los partidos</div>
+      <div class="sec-title" style="margin-top:.5rem;">Todos los eventos</div>
       <div class="tabla-wrap" style="margin-top:.5rem;">
         <table>
-          <thead><tr><th>Partido</th><th>Fecha</th><th>Estado</th><th>Tickets</th><th>Recaudado</th></tr></thead>
+          <thead><tr><th>Evento</th><th>Fecha</th><th>Estado</th><th>Tickets</th><th>Recaudado</th></tr></thead>
           <tbody id="stats-tbody"></tbody>
         </table>
       </div>`;
@@ -1051,10 +1038,10 @@ Te invito a participar como cobrador en este evento.
         </div>
       </div>
 
-      <!-- Lista de partidos filtrados -->
+      <!-- Lista de eventos filtrados -->
       <div class="card" style="margin-bottom:.9rem;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;">
-          <div class="sec-title" style="margin-bottom:0;">${filtrados.length} partido${filtrados.length !== 1 ? 's' : ''}</div>
+          <div class="sec-title" style="margin-bottom:0;">${filtrados.length} evento${filtrados.length !== 1 ? 's' : ''}</div>
           <div style="display:flex;gap:.5rem;">
             <button class="btn btn-outline btn-sm" id="btn-audit-sel-todos">Seleccionar todos</button>
             <button class="btn btn-outline btn-sm" id="btn-audit-limpiar-sel">Limpiar</button>
@@ -1062,7 +1049,7 @@ Te invito a participar como cobrador en este evento.
         </div>
 
         ${filtrados.length === 0
-          ? '<p style="font-size:.83rem;color:var(--text3);">No hay partidos con esos filtros.</p>'
+          ? '<p style="font-size:.83rem;color:var(--text3);">No hay eventos con esos filtros.</p>'
           : filtrados.map(e => {
               const r = e.resumen || {};
               const sel = this.audit.seleccionados.includes(e.id);
@@ -1082,7 +1069,7 @@ Te invito a participar como cobrador en este evento.
       <!-- Resumen de seleccionados -->
       ${resumenSel ? `
         <div style="margin-bottom:.9rem;">
-          <div class="sec-title" style="margin-bottom:.5rem;">${seleccionados.length} partido${seleccionados.length!==1?'s':''} seleccionado${seleccionados.length!==1?'s':''}</div>
+          <div class="sec-title" style="margin-bottom:.5rem;">${seleccionados.length} evento${seleccionados.length!==1?'s':''} seleccionado${seleccionados.length!==1?'s':''}</div>
           <div class="res-cards">
             <div class="res-card res-card-destac">
               <div class="res-label">Total recaudado</div>
@@ -1176,7 +1163,7 @@ Te invito a participar como cobrador en este evento.
         [this._xlsxCell('ESTACIONAMIENTO CUC - RESUMEN GENERAL', st.title), null, null, null, null, null, null, null, null, null],
         [],
         [
-          this._xlsxCell('Partido', st.header),
+          this._xlsxCell('Evento', st.header),
           this._xlsxCell('Categoria', st.header),
           this._xlsxCell('Fecha', st.header),
           this._xlsxCell('Precio', st.header),
@@ -1278,7 +1265,6 @@ Te invito a participar como cobrador en este evento.
     document.getElementById('btn-back-crear').addEventListener('click', () =>
       this.showScreen('screen-dashboard'));
     document.getElementById('btn-crear-evento').addEventListener('click', () => this.crearEvento());
-    document.getElementById('btn-configurar-evento-especial').addEventListener('click', () => this.configurarEventoEspecial());
 
     document.getElementById('ev-visitante').addEventListener('change', function() {
       document.getElementById('visitante-otro-wrap').style.display =
@@ -1310,18 +1296,6 @@ Te invito a participar como cobrador en este evento.
     document.querySelectorAll('#screen-crear .campo-error').forEach(e => e.classList.remove('visible'));
   },
 
-  configurarEventoEspecial() {
-    document.getElementById('ev-visitante').value = '__otro__';
-    document.getElementById('visitante-otro-wrap').style.display = 'block';
-    document.getElementById('ev-visitante-otro').value = 'Visita Papal - Prueba';
-    document.getElementById('ev-categoria').value = 'plantel_superior';
-    document.getElementById('ev-fecha').value = '2026-10-28';
-    document.getElementById('ev-hora').value = '00:00';
-    document.getElementById('ev-precio').value = '80000';
-    document.getElementById('ev-alias').value = '';
-    document.getElementById('crear-alerta').innerHTML =
-      '<div class="alerta-ok">Visita Papal - Prueba configurado y habilitado para hoy. Los importes por vehículo, el QR y el alias se aplicarán automáticamente.</div>';
-  },
 };
 
 document.addEventListener('DOMContentLoaded', () => Admin.init());
