@@ -292,7 +292,6 @@ const App = {
       </div>
       <div class="app-main app-main-cobro" style="padding:1rem;display:flex;flex-direction:column;gap:.85rem;">
         <div id="cobro-alerta"></div>
-        <div class="evento-especial-aviso"><strong>Solo pago con QR</strong><span>Anotá el número de ticket, elegí el vehículo y mostrá el QR. Confirmá únicamente cuando el pago esté acreditado. No se cobra en efectivo.</span></div>
         <div class="ticket-input-wrap"><label>Número de ticket</label><input type="text" id="ticket-num" class="ticket-input" placeholder="000" inputmode="numeric" autocomplete="off" enterkeyhint="done" maxlength="8" pattern="[0-9]{1,8}"></div>
         <div class="cobro-metodos-panel"><div class="sec-title" style="margin-bottom:.5rem;">Tipo de vehículo</div><div class="vehiculos-grid">${opciones}</div></div>
         <button class="btn btn-verde btn-lg btn-full" id="btn-cobrar-especial" disabled>Cobrar</button>
