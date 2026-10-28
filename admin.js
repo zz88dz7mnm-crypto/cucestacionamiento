@@ -1215,7 +1215,7 @@ Te invito a participar como cobrador en este evento.
   configurarEventoEspecial() {
     document.getElementById('ev-visitante').value = '__otro__';
     document.getElementById('visitante-otro-wrap').style.display = 'block';
-    document.getElementById('ev-visitante-otro').value = 'Estacionamiento especial';
+    document.getElementById('ev-visitante-otro').value = 'Visita Papal';
     document.getElementById('ev-categoria').value = 'plantel_superior';
     document.getElementById('ev-fecha').value = '2026-11-08';
     document.getElementById('ev-hora').value = '08:00';
