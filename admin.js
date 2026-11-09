@@ -22,7 +22,7 @@ const Admin = {
 
   eventoEspecial(e) {
     const fecha = String(e?.fecha || '').slice(0, 10);
-    return this.EVENTOS_ESPECIALES.find(c => c.visitante === e?.visitante && (c.fecha === null || c.fecha === fecha)) || null;
+    return this.EVENTOS_ESPECIALES.find(c => (c.fecha === null ? String(e?.visitante || '').trim().toUpperCase() === c.visitante : c.visitante === e?.visitante) && (c.fecha === null || c.fecha === fecha)) || null;
   },
   // Finaliza automáticamente los eventos especiales cuyo horario ya terminó.
   async finalizarEspecialesVencidos(eventos) {

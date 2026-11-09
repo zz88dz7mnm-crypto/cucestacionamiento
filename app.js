@@ -885,7 +885,7 @@ const App = {
 
   configEventoEspecial(evento) {
     return Object.values(this.EVENTO_ESPECIAL.eventos).find(config =>
-      config.visitante === evento?.visitante && (config.fecha === null || config.fecha === String(evento?.fecha || '').slice(0, 10))
+      (config.fecha === null ? String(evento?.visitante || '').trim().toUpperCase() === config.visitante : config.visitante === evento?.visitante) && (config.fecha === null || config.fecha === String(evento?.fecha || '').slice(0, 10))
     ) || null;
   },
 
