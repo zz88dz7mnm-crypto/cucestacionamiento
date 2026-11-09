@@ -11,6 +11,7 @@ const Admin = {
   EVENTOS_ESPECIALES: [
     { visitante: 'Visita Papal', fecha: '2026-11-08', titulo: 'Visita Papal', periodo: 'Del 8/11 00:00 al 10/11 13:00 hs', fin: '2026-11-10T13:00:00-03:00' },
     { visitante: 'Visita Papal - Prueba', fecha: '2026-10-28', titulo: 'Visita Papal - Prueba', periodo: 'Evento de prueba' },
+    { visitante: 'PRUEBA', fecha: null, titulo: 'PRUEBA', periodo: 'Evento de prueba' },
   ],
   VEHICULOS_ESPECIALES: [
     { label: 'Auto', monto: 80000 },
@@ -21,7 +22,7 @@ const Admin = {
 
   eventoEspecial(e) {
     const fecha = String(e?.fecha || '').slice(0, 10);
-    return this.EVENTOS_ESPECIALES.find(c => c.visitante === e?.visitante && c.fecha === fecha) || null;
+    return this.EVENTOS_ESPECIALES.find(c => c.visitante === e?.visitante && (c.fecha === null || c.fecha === fecha)) || null;
   },
   // Finaliza automáticamente los eventos especiales cuyo horario ya terminó.
   async finalizarEspecialesVencidos(eventos) {

@@ -15,6 +15,11 @@ const App = {
         inicio: '2026-10-28T00:00:00-03:00', fin: null,
         titulo: 'Visita Papal - Prueba', periodo: 'Evento de prueba',
       },
+      pruebaLibre: {
+        visitante: 'PRUEBA', fecha: null,
+        inicio: '2026-01-01T00:00:00-03:00', fin: null,
+        titulo: 'PRUEBA', periodo: 'Evento de prueba', prueba: true,
+      },
     },
     vehiculos: {
       auto:       { label: 'Auto',               monto: 80000 },
@@ -874,12 +879,13 @@ const App = {
   },
 
   esEventoPrueba(evento) {
-    return this.configEventoEspecial(evento)?.visitante === 'Visita Papal - Prueba';
+    const c = this.configEventoEspecial(evento);
+    return Boolean(c?.prueba || c?.visitante === 'Visita Papal - Prueba');
   },
 
   configEventoEspecial(evento) {
     return Object.values(this.EVENTO_ESPECIAL.eventos).find(config =>
-      config.visitante === evento?.visitante && config.fecha === evento?.fecha
+      config.visitante === evento?.visitante && (config.fecha === null || config.fecha === String(evento?.fecha || '').slice(0, 10))
     ) || null;
   },
 

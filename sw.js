@@ -1,4 +1,4 @@
-const CACHE = 'cuc-local-v7';
+const CACHE = 'cuc-local-v8';
 const ARCHIVOS = [
   './styles.css',
   './logo.png',
